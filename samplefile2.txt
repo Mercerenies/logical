@@ -1,0 +1,13 @@
+
+foo(1).
+foo(2).
+foo(3).
+
+bar(X):
+  foo(X)
+bar(X):
+  foo(X)
+
+main:
+  bar(X)
+  writeTerm(X)

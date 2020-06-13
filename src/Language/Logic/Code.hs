@@ -5,17 +5,17 @@ module Language.Logic.Code where
 import Language.Logic.Term
 import Language.Logic.Unify(AssumptionState)
 import Language.Logic.Unique
+import Language.Logic.Choice
 import qualified Language.Logic.Util as Util
 import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
-import Polysemy.NonDet
 import Polysemy.Reader
 
 import Data.Map(Map)
 import qualified Data.Map as Map
 
-type EvalCtx r = (Member (Reader CodeBody) r, Member NonDet r, Member (Unique Int) r,
+type EvalCtx r = (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r,
                   Member AssumptionState r, Member EM.EvalIO r)
 
 data EvalEff a = EvalEff (forall r. EvalCtx r => Sem r a)
