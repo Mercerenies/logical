@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c5b3b99f28d0f424723d1d0445911c68c4706f7e0e45ce155416ebdd929d93b2
+-- hash: af94ba5a56b6a44caddf4bcacc6255b6863b10e53c1a3a95a093e669e924650b
 
 name:           logical
 version:        0.1.0.0
@@ -19,6 +19,7 @@ build-type:     Simple
 extra-source-files:
     README.md
     ChangeLog.md
+data-dir:       std/
 
 source-repository head
   type: git

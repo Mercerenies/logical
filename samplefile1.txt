@@ -1,0 +1,4 @@
+
+main:
+  repeat
+  writeTerm(7)

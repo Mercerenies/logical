@@ -3,6 +3,7 @@ module Language.Logic.StdLib where
 
 import Language.Logic.Code
 import Language.Logic.Term
+import Language.Logic.Parser
 import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
@@ -29,9 +30,22 @@ builtinToPrim g = \fct -> EvalEff $ g fct
 writeTerm :: EvalCtx r => Fact -> Sem r ()
 writeTerm = arg1 >=> \t -> EM.writeOut (shows t "\n")
 
+fail_ :: EvalCtx r => Fact -> Sem r ()
+fail_ _ = mzero
+
 stdlib :: CodeBody
 stdlib = CodeBody $ Map.fromList [
           ("writeTerm", [
             PrimClause "writeTerm" (builtinToPrim writeTerm)
+           ]),
+          ("fail", [
+            PrimClause "fail" (builtinToPrim fail_)
            ])
          ]
+
+getPrelude :: IO CodeBody
+getPrelude = do
+  code <- readFile "std/Prelude"
+  case tokenizeAndParse "std/Prelude" code of
+    Left err -> fail (show err)
+    Right clauses -> return $ stdlib <> consolidateClauses clauses

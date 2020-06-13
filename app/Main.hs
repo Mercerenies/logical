@@ -21,7 +21,8 @@ main = do
         case tokenizeAndParse fname contents of
           Left err -> print err >> exitFailure
           Right clauses -> do
-              let body = stdlib <> consolidateClauses clauses
+              prelude <- getPrelude
+              let body = prelude <> consolidateClauses clauses
               runProgram body
 
 --print $ runProgram example
