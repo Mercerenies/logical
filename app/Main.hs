@@ -19,8 +19,8 @@ main = do
         contents <- readFile fname
         case tokenizeAndParse fname contents of
           Left err -> print err >> exitFailure
-          Right clauses ->
-              let n = runProgram (consolidateClauses clauses) in
+          Right clauses -> do
+              n <- runProgram (consolidateClauses clauses)
               print n
 
 --print $ runProgram example

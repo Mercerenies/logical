@@ -6,6 +6,7 @@ import Language.Logic.Term
 import Language.Logic.Unify
 import Language.Logic.Util
 import Language.Logic.Unique
+import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
 import Polysemy.Reader
@@ -33,7 +34,8 @@ freshenClause (Clause concl inner) = do
       inner' = fmap (subOnceInFact asm) inner
   return $ Clause concl' inner'
 
-matchClause :: (Member (Reader CodeBody) r, Member NonDet r, Member (Unique Int) r, Member AssumptionState r) =>
+matchClause :: (Member (Reader CodeBody) r, Member NonDet r, Member (Unique Int) r, Member AssumptionState r,
+                Member EM.EvalIO r) =>
                Fact -> Clause -> Sem r ()
 matchClause fact clause = do
   Clause concl inner <- freshenClause clause
@@ -45,7 +47,8 @@ matchClause fact clause = do
   errorToNonDet $ zipWithM_ subAndUnify (factBody fact') (factBody concl')
   mapM_ (doSubFact >=> evalGoal) inner'
 
-evalGoal :: (Member (Reader CodeBody) r, Member NonDet r, Member (Unique Int) r, Member AssumptionState r) =>
+evalGoal :: (Member (Reader CodeBody) r, Member NonDet r, Member (Unique Int) r, Member AssumptionState r,
+             Member EM.EvalIO r) =>
             Fact -> Sem r ()
 evalGoal fact = do
   traceM $ "GOAL  " ++ show fact
@@ -53,7 +56,7 @@ evalGoal fact = do
   clause <- oneOf clauses
   matchClause fact clause
 
-runProgram :: CodeBody -> Int
+runProgram :: CodeBody -> IO Int
 runProgram body = evalGoal (Fact "main" []) &
                   runReader body &
                   evalAssumptionState &
@@ -62,6 +65,8 @@ runProgram body = evalGoal (Fact "main" []) &
                   runUniqueInt & -- TODO Swap this with the above
                                  -- line? Is it safe? It would make
                                  -- the var numbers less insane.
-                  run &
-                  length
+                  EM.evalToIO &
+                  embedToFinal &
+                  runFinal &
+                  fmap length
 
