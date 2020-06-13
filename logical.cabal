@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: af94ba5a56b6a44caddf4bcacc6255b6863b10e53c1a3a95a093e669e924650b
+-- hash: ca363d962a06a3a1bae3b945a0a02be0b9d5ee255c79109dbc24cb0490905d5b
 
 name:           logical
 version:        0.1.0.0
@@ -73,6 +73,7 @@ test-suite logical-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Language.Logic.Test.Term
       Language.Logic.Test.Unify
       Paths_logical
   hs-source-dirs:

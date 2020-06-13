@@ -14,6 +14,9 @@ import qualified Data.Map as Map
 tests :: Test
 tests = TestLabel "Language.Logic.Test.Unify" $ TestList [testEqual, testSimpleVar, testDeepVar]
 
+termAtom :: String -> Term
+termAtom s = TermCompound s []
+
 unifyTestPass :: Term -> Term -> Term -> [(String, Term)] -> Test
 unifyTestPass s t u0 asm0 = TestCase $
     case fullUnify s t & runError & run of
@@ -31,13 +34,13 @@ unifyTestFail s t = TestCase $
 testEqual :: Test
 testEqual = TestLabel "testEqual" $ TestList [
              unifyTestPass (TermInt 1) (TermInt 1) (TermInt 1) [],
-             unifyTestPass (TermAtom "a") (TermAtom "a") (TermAtom "a") [],
-             let t = TermCompound "foo" [TermAtom "a", TermCompound "b" []] in unifyTestPass t t t [],
+             unifyTestPass (termAtom "a") (termAtom "a") (termAtom "a") [],
+             let t = TermCompound "foo" [termAtom "a", TermCompound "b" []] in unifyTestPass t t t [],
              unifyTestFail (TermInt 1) (TermInt 3),
-             unifyTestFail (TermAtom "a") (TermAtom "b"),
-             unifyTestFail (TermAtom "a") (TermInt 3),
-             let t = TermCompound "foo" [TermAtom "a", TermCompound "b" []] in unifyTestFail t (TermInt 10),
-             let t x = TermCompound "foo" [TermAtom "a", TermInt x] in unifyTestFail (t 10) (t 11)
+             unifyTestFail (termAtom "a") (termAtom "b"),
+             unifyTestFail (termAtom "a") (TermInt 3),
+             let t = TermCompound "foo" [termAtom "a", TermCompound "b" []] in unifyTestFail t (TermInt 10),
+             let t x = TermCompound "foo" [termAtom "a", TermInt x] in unifyTestFail (t 10) (t 11)
             ]
 
 testSimpleVar :: Test
