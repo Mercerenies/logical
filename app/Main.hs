@@ -5,6 +5,7 @@ import Language.Logic.Eval
 import Language.Logic.Term
 import Language.Logic.Code
 import Language.Logic.Parser
+import Language.Logic.StdLib
 
 import qualified Data.Map as Map
 import System.Environment
@@ -20,8 +21,8 @@ main = do
         case tokenizeAndParse fname contents of
           Left err -> print err >> exitFailure
           Right clauses -> do
-              n <- runProgram (consolidateClauses clauses)
-              print n
+              let body = stdlib <> consolidateClauses clauses
+              runProgram body
 
 --print $ runProgram example
 
@@ -38,9 +39,9 @@ main() :- bar(X).
 example :: CodeBody
 example = CodeBody (Map.fromList clauses)
     where clauses = [
-            ("foo", [Clause (Fact "foo" [TermInt 1]) [],
-                     Clause (Fact "foo" [TermInt 2]) [],
-                     Clause (Fact "foo" [TermInt 3]) []]),
-            ("bar", [Clause (Fact "bar" [TermVar "X"]) [Fact "foo" [TermVar "X"]]]),
-            ("main", [Clause (Fact "main" []) [Fact "bar" [TermVar "X"]]])
+            ("foo", [StdClause (Fact "foo" [TermInt 1]) [],
+                     StdClause (Fact "foo" [TermInt 2]) [],
+                     StdClause (Fact "foo" [TermInt 3]) []]),
+            ("bar", [StdClause (Fact "bar" [TermVar "X"]) [Fact "foo" [TermVar "X"]]]),
+            ("main", [StdClause (Fact "main" []) [Fact "bar" [TermVar "X"]]])
            ]

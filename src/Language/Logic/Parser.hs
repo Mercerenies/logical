@@ -41,7 +41,7 @@ clause :: Parser Clause
 clause = simpleClause <|> condClause
 
 simpleClause :: Parser Clause
-simpleClause = fmap (\fct -> Clause fct []) $ try (fact <* special Dot)
+simpleClause = fmap (\fct -> StdClause fct []) $ try (fact <* special Dot)
 
 determineTargetIndent :: Int -> Int -> Maybe Int
 determineTargetIndent curr next =
@@ -68,7 +68,7 @@ condClause = do
               Nothing -> fail "indentation error: block needs to be indented"
               Just n -> pure n
   inner <- clauseBody target
-  return $ Clause fct inner
+  return $ StdClause fct inner
 
 clauseBody :: Int -> Parser [Fact]
 clauseBody target = many $ do
