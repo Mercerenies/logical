@@ -23,7 +23,9 @@ main = do
           Right clauses -> do
               prelude <- getPrelude
               let body = prelude <> consolidateClauses clauses
-              runProgram body
+              runProgram body >>= \case
+                Left err -> print err >> exitFailure
+                Right () -> pure ()
 
 --print $ runProgram example
 

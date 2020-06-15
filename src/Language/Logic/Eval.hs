@@ -7,6 +7,7 @@ import Language.Logic.Unify
 import Language.Logic.Util
 import Language.Logic.Unique
 import Language.Logic.Choice
+import Language.Logic.Error
 import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
@@ -16,14 +17,15 @@ import Polysemy.Error
 
 import Control.Monad
 import Data.Function
+import Data.Bifunctor
 import qualified Data.Map as Map
 
 --import Debug.Trace
 
-errorToNonDet :: Member NonDet r => Sem (Error e ': r) a -> Sem r a
+errorToNonDet :: forall e a r. Member NonDet r => Sem (Error e ': r) a -> Sem r a
 errorToNonDet m = runError m >>= either (const mzero) pure
 
-errorToChoice :: Member Choice r => Sem (Error e ': r) a -> Sem r a
+errorToChoice :: forall e a r. Member Choice r => Sem (Error e ': r) a -> Sem r a
 errorToChoice = nonDetToChoice . errorToNonDet . raiseUnder
 
 freshVar :: Member (Unique Int) r => Sem r String
@@ -40,7 +42,7 @@ freshenClause (StdClause concl inner) = do
 freshenClause (PrimClause s p) = pure $ PrimClause s p
 
 matchClause0 :: (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r, Member AssumptionState r,
-                 Member EM.EvalIO r) =>
+                 Member EM.EvalIO r, Member (Error RuntimeError) r) =>
                 Fact -> Clause -> Sem r ()
 matchClause0 fact (StdClause concl inner) = do
   fact' <- doSubFact fact
@@ -56,12 +58,12 @@ matchClause0 fact (PrimClause s p) = do
   runEvalEff $ p fact'
 
 matchClause :: (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r, Member AssumptionState r,
-                Member EM.EvalIO r) =>
+                Member EM.EvalIO r, Member (Error RuntimeError) r) =>
                Fact -> Clause -> Sem r ()
 matchClause fact clause = freshenClause clause >>= matchClause0 fact
 
 evalGoal :: (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r, Member AssumptionState r,
-             Member EM.EvalIO r) =>
+             Member EM.EvalIO r, Member (Error RuntimeError) r) =>
             Fact -> Sem r ()
 evalGoal fact = do
   --traceM $ "GOAL  " ++ show fact
@@ -69,17 +71,18 @@ evalGoal fact = do
   clause <- nonDetToChoice $ oneOf clauses
   matchClause fact clause
 
-runProgram :: CodeBody -> IO ()
+runProgram :: CodeBody -> IO (Either RuntimeError ())
 runProgram body = evalGoal (Fact "main" []) &
                   runReader body &
                   evalAssumptionState &
-                  errorToChoice &
+                  errorToChoice @UnifyError &
                   runChoice @[] &
                   runUniqueInt & -- TODO Swap this with the above
                                  -- line? Is it safe? It would make
                                  -- the var numbers less insane.
                   EM.evalToIO &
+                  runError @RuntimeError &
                   embedToFinal &
                   runFinal &
-                  void
+                  fmap (bimap id (const ()))
 
