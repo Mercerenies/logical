@@ -69,8 +69,11 @@ pvar = try $ do
 spaceNotNewline :: Monad m => ParsecT String Int m Char
 spaceNotNewline = P.satisfy (\x -> isSpace x && not (x == '\n'))
 
+lineComment :: Monad m => ParsecT String Int m ()
+lineComment = void $ char '#' >> many (P.satisfy (/= '\n')) >> lookAhead (char '\n')
+
 spaces :: Monad m => ParsecT String Int m ()
-spaces = skipMany (void spaceNotNewline <|> newlineChecked)
+spaces = skipMany (void spaceNotNewline <|> newlineChecked <|> lineComment)
     where newlineChecked = do
             _ <- char '\n'
             indent <- length <$> many spaceNotNewline

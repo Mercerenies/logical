@@ -1,4 +1,7 @@
 
+# Line comment
+
 main:
   repeat
+  # Line comment
   writeTerm(7)
