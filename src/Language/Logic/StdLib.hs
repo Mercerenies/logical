@@ -6,10 +6,13 @@ import Language.Logic.Code
 import Language.Logic.Term
 import Language.Logic.Parser
 import Language.Logic.Choice
+import Language.Logic.Error
+import Language.Logic.Eval
 import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
 import Polysemy.NonDet
+import Polysemy.Error
 
 import Control.Monad
 --import Data.Map(Map)
@@ -38,6 +41,16 @@ writeTerm = arg1 >=> \t -> EM.writeOut (shows t "\n")
 fail_ :: EvalCtx' r => Fact -> Sem r ()
 fail_ _ = mzero
 
+-- Takes at least one argument. The first arg must be a compound term.
+-- Any additional arguments are appended to the end of the compound
+-- before calling it as a goal.
+call :: EvalCtx' r => Fact -> Sem r ()
+call fct = case fct of
+             Fact _ [] -> mzero -- TODO Is this an error?
+             Fact _ (TermVar v : _) -> throw (VarNotDone v)
+             Fact _ (TermCompound f xs : ys) -> evalGoal (Fact f (xs ++ ys))
+             Fact _ (t : _) -> throw (TypeError "compound term" t)
+
 stdlib :: CodeBody
 stdlib = CodeBody $ Map.fromList [
           ("writeTerm", [
@@ -45,6 +58,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("fail", [
             PrimClause "fail" (builtinToPrim fail_)
+           ]),
+          ("call", [
+            PrimClause "call" (builtinToPrim call)
            ])
          ]
 

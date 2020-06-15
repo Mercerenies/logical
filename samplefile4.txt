@@ -1,0 +1,8 @@
+
+a(1, 1).
+a(2, 2).
+a(3, 3).
+
+main:
+  call(a(3), X)
+  writeTerm(X)
