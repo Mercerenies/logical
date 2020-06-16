@@ -9,4 +9,4 @@ b(f(X, Y)):
 
 main:
   b(X)
-  writeTerm(X)
+  write_term(X)

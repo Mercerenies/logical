@@ -64,8 +64,8 @@ not_ = argsForCall >=> \fct -> do
 
 stdlib :: CodeBody
 stdlib = CodeBody $ Map.fromList [
-          ("writeTerm", [
-            PrimClause "writeTerm" (builtinToPrim writeTerm)
+          ("write_term", [
+            PrimClause "write_term" (builtinToPrim writeTerm)
            ]),
           ("fail", [
             PrimClause "fail" (builtinToPrim fail_)

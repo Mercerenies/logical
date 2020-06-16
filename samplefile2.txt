@@ -10,4 +10,4 @@ bar(X):
 
 main:
   bar(X)
-  writeTerm(X)
+  write_term(X)

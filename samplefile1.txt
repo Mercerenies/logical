@@ -4,4 +4,4 @@
 main:
   repeat
   # Line comment
-  writeTerm(7)
+  write_term(7)
