@@ -8,6 +8,8 @@ repeat.
 repeat:
   repeat
 
+`=`(A, A).
+
 once(F):
   if(F, true, false)
 
