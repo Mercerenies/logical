@@ -6,4 +6,4 @@ a(3, 10).
 
 main:
   call(a(3), X)
-  writeTerm(X)
+  write_term(X)

@@ -13,4 +13,4 @@ even(6).
 main:
   num(N)
   not(even(N))
-  writeTerm(N)
+  write_term(N)
