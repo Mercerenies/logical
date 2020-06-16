@@ -2,4 +2,3 @@
 main:
   `=`(Y, X)
   `=`(Y, 3)
-  write_term(X)
