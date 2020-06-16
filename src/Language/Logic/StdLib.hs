@@ -15,6 +15,7 @@ import Polysemy.NonDet
 import Polysemy.Error
 
 import Control.Monad
+import Control.Applicative
 --import Data.Map(Map)
 import qualified Data.Map as Map
 
@@ -32,6 +33,15 @@ arg2 :: EvalCtx' r => Fact -> Sem r (Term, Term)
 arg2 (Fact _ [x, y]) = pure (x, y)
 arg2 _ = mzero
 
+-- Takes at least one argument. The first arg must be a compound term.
+-- Any additional arguments are appended to the end of the compound
+-- before calling it as a goal.
+argsForCall :: EvalCtx' r => Fact -> Sem r Fact
+argsForCall (Fact _ []) = mzero -- TODO Is this an error?
+argsForCall (Fact _ (TermVar v : _)) = throw (VarNotDone v)
+argsForCall (Fact _ (TermCompound f xs : ys)) = pure $ Fact f (xs ++ ys)
+argsForCall (Fact _ (t : _)) = throw (TypeError "compound term" t)
+
 builtinToPrim :: forall a. (forall r. EvalCtx' r => Fact -> Sem r a) -> (Fact -> EvalEff a)
 builtinToPrim g = \fct -> EvalEff $ nonDetToChoice (g fct)
 
@@ -41,15 +51,16 @@ writeTerm = arg1 >=> \t -> EM.writeOut (shows t "\n")
 fail_ :: EvalCtx' r => Fact -> Sem r ()
 fail_ _ = mzero
 
--- Takes at least one argument. The first arg must be a compound term.
--- Any additional arguments are appended to the end of the compound
--- before calling it as a goal.
 call :: EvalCtx' r => Fact -> Sem r ()
-call fct = case fct of
-             Fact _ [] -> mzero -- TODO Is this an error?
-             Fact _ (TermVar v : _) -> throw (VarNotDone v)
-             Fact _ (TermCompound f xs : ys) -> evalGoal (Fact f (xs ++ ys))
-             Fact _ (t : _) -> throw (TypeError "compound term" t)
+call = argsForCall >=> evalGoal
+
+once_ :: EvalCtx' r => Fact -> Sem r ()
+once_ = argsForCall >=> (once . evalGoal)
+
+not_ :: EvalCtx' r => Fact -> Sem r ()
+not_ = argsForCall >=> \fct -> do
+         res <- once $ (False <$ evalGoal fct) <|> pure True
+         guard res
 
 stdlib :: CodeBody
 stdlib = CodeBody $ Map.fromList [
@@ -61,6 +72,12 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("call", [
             PrimClause "call" (builtinToPrim call)
+           ]),
+          ("once", [
+            PrimClause "once" (builtinToPrim once_)
+           ]),
+          ("not", [
+            PrimClause "not" (builtinToPrim not_)
            ])
          ]
 

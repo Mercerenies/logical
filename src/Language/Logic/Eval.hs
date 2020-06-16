@@ -68,8 +68,7 @@ evalGoal :: (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r,
 evalGoal fact = do
   --traceM $ "GOAL  " ++ show fact
   clauses <- asks (lookupHead $ factHead fact)
-  clause <- nonDetToChoice $ oneOf clauses
-  matchClause fact clause
+  nonDetToChoice $ oneOf (fmap (matchClause fact) clauses)
 
 runProgram :: CodeBody -> IO (Either RuntimeError ())
 runProgram body = evalGoal (Fact "main" []) &

@@ -11,8 +11,8 @@ sepBy delim = maybe id id . foldr go Nothing
     where go x Nothing = Just x
           go x (Just y) = Just (x . delim . y)
 
-oneOf :: (Functor t, Foldable t, Alternative f) => t a -> f a
-oneOf = foldr (<|>) empty . fmap pure
+oneOf :: (Functor t, Foldable t, Alternative f) => t (f a) -> f a
+oneOf = foldr (<|>) empty -- TODO This is just asum....
 
 classify :: Ord k => (a -> k) -> [a] -> Map k [a]
 classify f = fmap reverse . foldl' go Map.empty

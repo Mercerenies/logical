@@ -31,10 +31,10 @@ runChoice0 f = f . reinterpretH go
           go Empty = App.empty
           go (Choose a b) = do
             a' <- runT a
-            b' <- runT b
             let a'' = raise $ interpretH go a'
-                b'' = raise $ interpretH go b'
-            a'' <|> b''
+            a'' <|> do
+              b' <- runT b
+              raise $ interpretH go b'
           go (Once a) = do
             a' <- runT a
             a'' <- raise $ runChoiceMaybe a'

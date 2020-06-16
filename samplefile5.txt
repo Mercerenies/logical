@@ -1,0 +1,16 @@
+
+num(1).
+num(2).
+num(3).
+num(4).
+num(5).
+num(6).
+
+even(2).
+even(4).
+even(6).
+
+main:
+  num(N)
+  not(even(N))
+  writeTerm(N)

@@ -1,0 +1,12 @@
+
+a(1).
+a(2).
+a(3).
+
+b(f(X, Y)):
+  once(a(X))
+  a(Y)
+
+main:
+  b(X)
+  writeTerm(X)
