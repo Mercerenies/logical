@@ -7,3 +7,12 @@ true.
 repeat.
 repeat:
   repeat
+
+once(F):
+  if(F, true, false)
+
+not(F):
+  if(F, false, true)
+
+ignore(F):
+  if(F, true, true)

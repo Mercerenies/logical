@@ -74,14 +74,6 @@ if_ = arg3 >=> \(c, t, f) -> do
         res <- once $ (True <$ evalGoal c') <|> pure False
         if res then evalGoal t' else evalGoal f'
 
-once_ :: EvalCtx' r => Fact -> Sem r ()
-once_ = argsForCall >=> (once . evalGoal)
-
-not_ :: EvalCtx' r => Fact -> Sem r ()
-not_ = argsForCall >=> \fct -> do
-         res <- once $ (False <$ evalGoal fct) <|> pure True
-         guard res
-
 stdlib :: CodeBody
 stdlib = CodeBody $ Map.fromList [
           ("write_term", [
@@ -95,12 +87,6 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("if", [
             PrimClause "if" (builtinToPrim if_)
-           ]),
-          ("once", [
-            PrimClause "once" (builtinToPrim once_)
-           ]),
-          ("not", [
-            PrimClause "not" (builtinToPrim not_)
            ])
          ]
 
