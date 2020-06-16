@@ -33,6 +33,10 @@ arg2 :: EvalCtx' r => Fact -> Sem r (Term, Term)
 arg2 (Fact _ [x, y]) = pure (x, y)
 arg2 _ = mzero
 
+arg3 :: EvalCtx' r => Fact -> Sem r (Term, Term, Term)
+arg3 (Fact _ [x, y, z]) = pure (x, y, z)
+arg3 _ = mzero
+
 -- Takes at least one argument. The first arg must be a compound term.
 -- Any additional arguments are appended to the end of the compound
 -- before calling it as a goal.
@@ -41,6 +45,10 @@ argsForCall (Fact _ []) = mzero -- TODO Is this an error?
 argsForCall (Fact _ (TermVar v : _)) = throw (VarNotDone v)
 argsForCall (Fact _ (TermCompound f xs : ys)) = pure $ Fact f (xs ++ ys)
 argsForCall (Fact _ (t : _)) = throw (TypeError "compound term" t)
+
+assertCompound :: EvalCtx' r => Term -> Sem r Fact
+assertCompound (TermCompound f xs) = pure $ Fact f xs
+assertCompound t = throw (TypeError "compoundTerm" t)
 
 builtinToPrim :: forall a. (forall r. EvalCtx' r => Fact -> Sem r a) -> (Fact -> EvalEff a)
 builtinToPrim g = \fct -> EvalEff $ nonDetToChoice (g fct)
@@ -53,6 +61,18 @@ fail_ _ = mzero
 
 call :: EvalCtx' r => Fact -> Sem r ()
 call = argsForCall >=> evalGoal
+
+-- Evaluates the conditional only once. If the condition succeeds,
+-- evaluates the true argument. If it fails, evaluates the false
+-- argument. The conditional is only evaluated once, but the other two
+-- args are evaluated for all solutions.
+if_ :: EvalCtx' r => Fact -> Sem r ()
+if_ = arg3 >=> \(c, t, f) -> do
+        c' <- assertCompound c
+        t' <- assertCompound t
+        f' <- assertCompound f
+        res <- once $ (True <$ evalGoal c') <|> pure False
+        if res then evalGoal t' else evalGoal f'
 
 once_ :: EvalCtx' r => Fact -> Sem r ()
 once_ = argsForCall >=> (once . evalGoal)
@@ -72,6 +92,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("call", [
             PrimClause "call" (builtinToPrim call)
+           ]),
+          ("if", [
+            PrimClause "if" (builtinToPrim if_)
            ]),
           ("once", [
             PrimClause "once" (builtinToPrim once_)

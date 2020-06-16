@@ -1,0 +1,11 @@
+
+a(1).
+a(2).
+a(3).
+
+b(1).
+b(2).
+b(3).
+
+main:
+  if(c(X), write_term(t(X)), write_term(f(X)))
