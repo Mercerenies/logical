@@ -6,6 +6,8 @@ module Language.Logic.Term(Term(..), Fact(..),
 
 import qualified Language.Logic.Util as Util
 
+import Data.Char
+
 data Term = TermVar String
           | TermInt Integer
           | TermCompound String [Term]
@@ -14,7 +16,7 @@ data Term = TermVar String
 instance Show Term where
     showsPrec _ (TermVar v) = (v ++)
     showsPrec _ (TermInt n) = shows n
-    showsPrec _ (TermCompound s args) = (s ++) . ("(" ++) . args' . (")" ++)
+    showsPrec _ (TermCompound s args) = showsAtomic s . ("(" ++) . args' . (")" ++)
         where args' = Util.sepBy ("," ++) $ fmap shows args
 
 data Fact = Fact String [Term]
@@ -23,6 +25,20 @@ data Fact = Fact String [Term]
 instance Show Fact where
     showsPrec _ (Fact s args) = (s ++) . ("(" ++) . args' . (")" ++)
         where args' = Util.sepBy ("," ++) $ fmap shows args
+
+isStdAtom :: String -> Bool
+isStdAtom [] = False
+isStdAtom xs | not $ all (\x -> isAlpha x || isDigit x || x == '_') xs = False
+isStdAtom (x:_) | isDigit x = False
+isStdAtom (x:_) | not (isLower x) = False
+isStdAtom _ = True
+
+showsAtomic :: String -> ShowS
+showsAtomic s =
+    if isStdAtom s then
+        (s ++)
+    else
+        ("`" ++) . (s ++) . ("`" ++)
 
 factHead :: Fact -> String
 factHead (Fact s _) = s

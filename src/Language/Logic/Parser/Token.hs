@@ -58,6 +58,13 @@ patom = try $ do
            _ -> False)
   return xs
 
+patomQuoted :: Parser String
+patomQuoted = do
+  _ <- char '`'
+  xs <- many (P.satisfy (/= '`'))
+  _ <- char '`'
+  return xs
+
 pvar :: Parser String
 pvar = try $ do
   xs <- identifier
@@ -87,7 +94,7 @@ oneToken :: Parser TokenPos
 oneToken = TokenPos <$> getPosition <*> getState <*> tok
     where tok = TokenVar <$> pvar <|>
                 TokenInt <$> pinteger <|>
-                TokenAtom <$> patom <|>
+                TokenAtom <$> (patom <|> patomQuoted) <|>
                 TokenSpecial <$> pspecial
 
 readTokens :: String -> String -> Either ParseError [TokenPos]
