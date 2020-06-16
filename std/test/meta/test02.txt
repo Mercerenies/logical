@@ -1,0 +1,11 @@
+
+num(1).
+num(2).
+num(3).
+
+notme(1).
+notme(2).
+
+main:
+  once(and(num(N), not(notme(N))))
+  `=`(N, 3)
