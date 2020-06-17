@@ -42,6 +42,7 @@ compoundTerm' = block <|> compoundTerm
 term :: Parser Term
 term = TermVar <$> var <|>
        TermInt <$> integer <|>
+       (special OpenParen *> term <* special CloseParen) <|>
        uncurry TermCompound <$> compoundTerm'
 
 fact :: Parser Fact

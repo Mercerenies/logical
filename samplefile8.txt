@@ -8,5 +8,5 @@ b(3).
 main: {
   # block(a(X), b(X));
   { a(X); b(X); };
-  write_term(X);
+  write_term((((X))));
 }.
