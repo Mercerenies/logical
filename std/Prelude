@@ -1,29 +1,29 @@
 
 false:
-  fail
+  fail.
 
 true.
 
 repeat.
 repeat:
-  repeat
+  repeat.
 
 `=`(A, A).
 
 once(F):
-  if(F, true, false)
+  if(F, true, false).
 
 not(F):
-  if(F, false, true)
+  if(F, false, true).
 
 ignore(F):
-  if(F, true, true)
+  if(F, true, true).
 
 and(A, B):
-  call(A)
-  call(B)
+  call(A);
+  call(B).
 
 or(A, B):
-  call(A)
+  call(A).
 or(A, B):
-  call(B)
+  call(B).

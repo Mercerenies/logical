@@ -24,13 +24,14 @@ data Token = TokenVar String
            | TokenSpecial Spec
              deriving (Eq, Ord, Show)
 
-data Spec = OpenParen | CloseParen | Colon | Dot | Comma
+data Spec = OpenParen | CloseParen | Colon | Semicolon | Dot | Comma
             deriving (Eq, Ord, Enum, Show)
 
 pspecial :: Parser Spec
 pspecial = OpenParen  <$ char '(' <|>
            CloseParen <$ char ')' <|>
            Colon      <$ char ':' <|>
+           Semicolon  <$ char ';' <|>
            Dot        <$ char '.' <|>
            Comma      <$ char ','
 

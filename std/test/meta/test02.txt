@@ -7,5 +7,5 @@ notme(1).
 notme(2).
 
 main:
-  once(and(num(N), not(notme(N))))
-  `=`(N, 3)
+  once(and(num(N), not(notme(N))));
+  `=`(N, 3).

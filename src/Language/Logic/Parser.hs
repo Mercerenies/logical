@@ -10,6 +10,7 @@ import Control.Monad
 
 type Parser = Parsec [TokenPos] Int
 
+{-
 currentIndent :: Parser Int
 currentIndent = getState
 
@@ -18,6 +19,7 @@ nextIndent =
     -- Try looking ahead one token. If there isn't a next token, fall
     -- back and get current indent level.
     try (lookAhead (satisfy (const (Just ())) >> getState)) <|> getState
+-}
 
 compoundTerm :: Parser (String, [Term])
 compoundTerm = do
@@ -43,12 +45,14 @@ clause = simpleClause <|> condClause
 simpleClause :: Parser Clause
 simpleClause = fmap (\fct -> StdClause fct []) $ try (fact <* special Dot)
 
+{-
 determineTargetIndent :: Int -> Int -> Maybe Int
 determineTargetIndent curr next =
     case curr `compare` next of
       LT -> Just next -- Standard block (indented)
       EQ -> Nothing -- Inline block (TODO Not currently supported)
       GT -> Nothing -- Immediate dedent following (definitely an error)
+-}
 
 -- The EQ case above is not currently supported. I'd like to be able
 -- to support stuff like this on one line.
@@ -61,33 +65,18 @@ determineTargetIndent curr next =
 condClause :: Parser Clause
 condClause = do
   fct <- try (fact <* special Colon)
-  curr <- currentIndent
-  next <- nextIndent
-  -- Determine the indentation level of the subblock
-  target <- case determineTargetIndent curr next of
-              Nothing -> fail "indentation error: block needs to be indented"
-              Just n -> pure n
-  inner <- clauseBody target
+  inner <- clauseBody
+  _ <- special Dot
   return $ StdClause fct inner
 
-clauseBody :: Int -> Parser [Fact]
-clauseBody target = many $ do
-  ind <- nextIndent
-  if ind == target then
-      fact
-  else
-      fail "indentation error: block indentation does not match"
+clauseBody :: Parser [Fact]
+clauseBody = sepBy fact (special Semicolon)
 
-topLevelClauses :: Int -> Parser [Clause]
-topLevelClauses target = many $ do
-  ind <- nextIndent
-  if ind == target then
-      clause
-  else
-      fail "indentation error: block indentation does not match"
+topLevelClauses :: Parser [Clause]
+topLevelClauses = many clause
 
 parseText :: String -> [TokenPos] -> Either ParseError [Clause]
-parseText = runP (topLevelClauses 0 <* eof) 0
+parseText = runP (topLevelClauses <* eof) 0
 
 tokenizeAndParse :: String -> String -> Either ParseError [Clause]
 tokenizeAndParse src = readTokens src >=> parseText src
