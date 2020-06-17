@@ -42,7 +42,14 @@ term = TermVar <$> var <|>
        uncurry TermCompound <$> compoundTerm
 
 fact :: Parser Fact
-fact = uncurry Fact <$> compoundTerm
+fact = block <|> (uncurry Fact <$> compoundTerm)
+
+block :: Parser Fact
+block = do
+  _ <- special OpenBrace
+  terms <- many (uncurry TermCompound <$> compoundTerm <* special Semicolon)
+  _ <- special CloseBrace
+  return $ Fact "block" terms
 
 clause :: Parser Clause
 clause = simpleClause <|> condClause

@@ -24,7 +24,8 @@ data Token = TokenVar String
            | TokenSpecial Spec
              deriving (Eq, Ord, Show)
 
-data Spec = OpenParen | CloseParen | Colon | Semicolon | Dot | Comma
+data Spec = OpenParen | CloseParen | Colon | Semicolon | Dot | Comma |
+            OpenBrace | CloseBrace
             deriving (Eq, Ord, Enum, Show)
 
 pspecial :: Parser Spec
@@ -33,7 +34,9 @@ pspecial = OpenParen  <$ char '(' <|>
            Colon      <$ char ':' <|>
            Semicolon  <$ char ';' <|>
            Dot        <$ char '.' <|>
-           Comma      <$ char ','
+           Comma      <$ char ',' <|>
+           OpenBrace  <$ char '{' <|>
+           CloseBrace <$ char '}'
 
 sign :: Num a => Parser (a -> a)
 sign = plus <|> minus <|> pure id
