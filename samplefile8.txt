@@ -5,7 +5,8 @@ a(2).
 b(2).
 b(3).
 
-main:
+main: {
   # block(a(X), b(X));
   { a(X); b(X); };
-  write_term(X).
+  write_term(X);
+}.

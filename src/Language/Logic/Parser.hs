@@ -36,20 +36,23 @@ compoundTerm = do
     return body
   return (head_, body)
 
+compoundTerm' :: Parser (String, [Term])
+compoundTerm' = block <|> compoundTerm
+
 term :: Parser Term
 term = TermVar <$> var <|>
        TermInt <$> integer <|>
-       uncurry TermCompound <$> compoundTerm
+       uncurry TermCompound <$> compoundTerm'
 
 fact :: Parser Fact
-fact = block <|> (uncurry Fact <$> compoundTerm)
+fact = uncurry Fact <$> compoundTerm'
 
-block :: Parser Fact
+block :: Parser (String, [Term])
 block = do
   _ <- special OpenBrace
-  terms <- many (uncurry TermCompound <$> compoundTerm <* special Semicolon)
+  terms <- many (uncurry TermCompound <$> compoundTerm' <* special Semicolon)
   _ <- special CloseBrace
-  return $ Fact "block" terms
+  return ("block", terms)
 
 clause :: Parser Clause
 clause = simpleClause <|> condClause
@@ -74,15 +77,17 @@ determineTargetIndent curr next =
 -- no way to do that with the current tokenizer.
 -}
 
+-- TODO Consider desugaring blocks when parsed as inner here to simply
+-- be a list of facts.
 condClause :: Parser Clause
 condClause = do
   fct <- try (fact <* special Colon)
-  inner <- clauseBody
+  inner <- fact
   _ <- special Dot
-  return $ StdClause fct inner
+  return $ StdClause fct [inner]
 
-clauseBody :: Parser [Fact]
-clauseBody = sepBy fact (special Semicolon)
+-- clauseBody :: Parser [Fact]
+-- clauseBody = sepBy fact (special Semicolon)
 
 topLevelClauses :: Parser [Clause]
 topLevelClauses = many clause

@@ -19,9 +19,10 @@ not(F):
 ignore(F):
   if(F, true, true).
 
-and(A, B):
+and(A, B): {
   call(A);
-  call(B).
+  call(B);
+}.
 
 or(A, B):
   call(A).
