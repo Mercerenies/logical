@@ -62,6 +62,9 @@ fail_ _ = mzero
 call :: EvalCtx' r => Fact -> Sem r ()
 call = argsForCall >=> evalGoal
 
+block :: EvalCtx' r => Fact -> Sem r ()
+block (Fact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
+
 -- Evaluates the conditional only once. If the condition succeeds,
 -- evaluates the true argument. If it fails, evaluates the false
 -- argument. The conditional is only evaluated once, but the other two
@@ -87,6 +90,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("if", [
             PrimClause "if" (builtinToPrim if_)
+           ]),
+          ("block", [
+            PrimClause "block" (builtinToPrim block)
            ])
          ]
 
