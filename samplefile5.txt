@@ -10,7 +10,8 @@ even(2).
 even(4).
 even(6).
 
-main:
+main: {
   num(N);
   not(even(N));
-  write_term(N).
+  write_term(N);
+}.

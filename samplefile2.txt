@@ -8,6 +8,7 @@ bar(X):
 bar(X):
   foo(X).
 
-main:
+main: {
   bar(X);
-  write_term(X).
+  write_term(X);
+}.

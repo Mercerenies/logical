@@ -3,10 +3,12 @@ a(1).
 a(2).
 a(3).
 
-b(f(X, Y)):
+b(f(X, Y)): {
   once(a(X));
-  a(Y).
+  a(Y);
+}.
 
-main:
+main: {
   b(X);
-  write_term(X).
+  write_term(X);
+}.
