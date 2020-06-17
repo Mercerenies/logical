@@ -8,6 +8,6 @@ g(20).
 g(100).
 
 main:
-  and(f(X), g(X))
-  or(f(Y), g(Y))
-  write_term(go(X, Y))
+  and(f(X), g(X));
+  or(f(Y), g(Y));
+  write_term(go(X, Y)).

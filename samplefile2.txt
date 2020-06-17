@@ -4,10 +4,10 @@ foo(2).
 foo(3).
 
 bar(X):
-  foo(X)
+  foo(X).
 bar(X):
-  foo(X)
+  foo(X).
 
 main:
-  bar(X)
-  write_term(X)
+  bar(X);
+  write_term(X).

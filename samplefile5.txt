@@ -11,6 +11,6 @@ even(4).
 even(6).
 
 main:
-  num(N)
-  not(even(N))
-  write_term(N)
+  num(N);
+  not(even(N));
+  write_term(N).

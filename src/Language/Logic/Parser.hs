@@ -8,6 +8,11 @@ import Language.Logic.Parser.Token
 import Text.Parsec hiding (satisfy)
 import Control.Monad
 
+-- Note: The parser state is an Int representing the current
+-- indentation level. The syntax used to be indentation-sensitive, and
+-- I figure we might as well leave the functionality in in case we
+-- need it later. It's not currently used by the parser.
+
 type Parser = Parsec [TokenPos] Int
 
 {-
@@ -52,7 +57,6 @@ determineTargetIndent curr next =
       LT -> Just next -- Standard block (indented)
       EQ -> Nothing -- Inline block (TODO Not currently supported)
       GT -> Nothing -- Immediate dedent following (definitely an error)
--}
 
 -- The EQ case above is not currently supported. I'd like to be able
 -- to support stuff like this on one line.
@@ -61,6 +65,7 @@ determineTargetIndent curr next =
 --
 -- Where the inner block simply ends at the next newline. But there's
 -- no way to do that with the current tokenizer.
+-}
 
 condClause :: Parser Clause
 condClause = do

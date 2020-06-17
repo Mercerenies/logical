@@ -8,4 +8,4 @@ b(2).
 b(3).
 
 main:
-  if(c(X), write_term(t(X)), write_term(f(X)))
+  if(c(X), write_term(t(X)), write_term(f(X))).

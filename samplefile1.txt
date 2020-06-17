@@ -2,6 +2,6 @@
 # Line comment
 
 main:
-  repeat
+  repeat;
   # Line comment
-  write_term(7)
+  write_term(7).
