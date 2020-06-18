@@ -52,7 +52,7 @@ term = TermVar <$> var <|>
 term' :: Parser Term
 term' = do
   firstterm <- Op.Term <$> term
-  restterms <- concat <$> many (liftA2 (\x y -> [Op.OpTerm x, Op.Term y]) operator term)
+  restterms <- concat <$> many (liftA2 (\xs y -> fmap Op.OpTerm xs ++ [Op.Term y]) (many1 operator) term)
   let optable = Op.OpTable Map.empty
       comp = Op.TermComp (\a s b -> TermCompound s [a, b]) (\s a -> TermCompound s [a])
       result = Op.resolvePrec optable comp (firstterm :| restterms)
