@@ -2,7 +2,7 @@
 module Language.Logic.Parser.Token(TokenPos(..), Token(..), Spec(..),
                                    oneToken, readTokens,
                                    satisfy, satisfyTok,
-                                   var, integer, atom, special) where
+                                   var, integer, atom, operator, special) where
 
 import Text.Parsec hiding (many, (<|>), satisfy, spaces)
 import qualified Text.Parsec as P
@@ -69,6 +69,21 @@ patomQuoted = do
   _ <- char '`'
   return xs
 
+-- TODO I'm debating what to do with $. Haskell treats it as an
+-- operator, but many other languages (Scala, Java, Javascript, etc.)
+-- treat it as a standard identifier character.
+
+-- TODO Also, we definitely want to support Unicode in operators. I
+-- plan to do so later, once we've finalized more of the syntax and
+-- decided which Unicode categories make sense to be used in
+-- operators.
+
+operChar :: Parser Char
+operChar = P.satisfy (`elem` "!%&*+/<=>?@\\^|-~")
+
+poper :: Parser String
+poper = many1 operChar
+
 pvar :: Parser String
 pvar = try $ do
   xs <- identifier
@@ -99,6 +114,7 @@ oneToken = TokenPos <$> getPosition <*> getState <*> tok
     where tok = TokenVar <$> pvar <|>
                 TokenInt <$> pinteger <|>
                 TokenAtom <$> (patom <|> patomQuoted) <|>
+                TokenOperator <$> poper <|>
                 TokenSpecial <$> pspecial
 
 readTokens :: String -> String -> Either ParseError [TokenPos]
@@ -130,6 +146,11 @@ atom :: Stream s m TokenPos => ParsecT s Int m String
 atom = satisfyTok $ \case
        TokenAtom s -> Just s
        _ -> Nothing
+
+operator :: Stream s m TokenPos => ParsecT s Int m String
+operator = satisfyTok $ \case
+           TokenOperator s -> Just s
+           _ -> Nothing
 
 special :: Stream s m TokenPos => Spec -> ParsecT s Int m Spec
 special s = satisfyTok $ \case

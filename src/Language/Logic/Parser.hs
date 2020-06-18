@@ -4,9 +4,13 @@ module Language.Logic.Parser(parseText, tokenizeAndParse) where
 import Language.Logic.Term
 import Language.Logic.Code
 import Language.Logic.Parser.Token
+import qualified Language.Logic.Parser.Op as Op
 
 import Text.Parsec hiding (satisfy)
 import Control.Monad
+import Control.Applicative(liftA2)
+import Data.List.NonEmpty(NonEmpty(..))
+import qualified Data.Map as Map
 
 -- Note: The parser state is an Int representing the current
 -- indentation level. The syntax used to be indentation-sensitive, and
@@ -31,7 +35,7 @@ compoundTerm = do
   head_ <- atom
   body <- option [] $ do
     _ <- special OpenParen
-    body <- sepBy term (special Comma)
+    body <- sepBy term' (special Comma)
     _ <- special CloseParen
     return body
   return (head_, body)
@@ -42,16 +46,28 @@ compoundTerm' = block <|> compoundTerm
 term :: Parser Term
 term = TermVar <$> var <|>
        TermInt <$> integer <|>
-       (special OpenParen *> term <* special CloseParen) <|>
+       (special OpenParen *> term' <* special CloseParen) <|>
        uncurry TermCompound <$> compoundTerm'
 
+term' :: Parser Term
+term' = do
+  firstterm <- Op.Term <$> term
+  restterms <- concat <$> many (liftA2 (\x y -> [Op.OpTerm x, Op.Term y]) operator term)
+  let optable = Op.OpTable Map.empty
+      comp = Op.TermComp (\a s b -> TermCompound s [a, b]) (\s a -> TermCompound s [a])
+      result = Op.resolvePrec optable comp (firstterm :| restterms)
+  either (fail . show) pure result
+
 fact :: Parser Fact
-fact = uncurry Fact <$> compoundTerm'
+fact = term' >>= \case
+       TermCompound h ts -> pure $ Fact h ts
+       x -> unexpected (show x)
 
 block :: Parser (String, [Term])
 block = do
   _ <- special OpenBrace
-  terms <- many (uncurry TermCompound <$> compoundTerm' <* special Semicolon)
+  let f2t (Fact a b) = TermCompound a b
+  terms <- many (f2t <$> fact <* special Semicolon)
   _ <- special CloseBrace
   return ("block", terms)
 
