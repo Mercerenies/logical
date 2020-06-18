@@ -7,6 +7,6 @@ notme(1).
 notme(2).
 
 main: {
-  once(and(num(N), not(notme(N))));
+  once(num(N) && not(notme(N)));
   N = 3;
 }.

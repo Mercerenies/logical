@@ -19,12 +19,12 @@ not(F):
 ignore(F):
   if(F, true, true).
 
-and(A, B): {
+A && B: {
   call(A);
   call(B);
 }.
 
-or(A, B):
+A || B:
   call(A).
-or(A, B):
+A || B:
   call(B).

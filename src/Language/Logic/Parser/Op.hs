@@ -44,9 +44,8 @@ defaultOp = Op 0 AssocNone -- TODO Actually decide this
 getPrec :: OpA -> OpTable -> Op
 getPrec s (OpTable m) = Map.findWithDefault defaultOp s m
 
--- TODO Verify that the sequence never contains trailing operators or adjacent terms.
 resolvePrec :: forall a. Show a => OpTable -> TermComp a -> NonEmpty (OpTerm a) -> Either OpError a
-resolvePrec table (TermComp {..}) (x0 :| xs0) = go Prefix [] [] (x0:xs0)
+resolvePrec table (TermComp {..}) (x0 :| xs0) = verifySeq (x0 :| xs0) >> go Prefix [] [] (x0:xs0)
     where -- The Fixity "state" argument tells us which fixity to
           -- expect if we see an operator. At the beginning of
           -- parsing, we can only see prefix operators. After a term,
@@ -70,3 +69,13 @@ resolvePrec table (TermComp {..}) (x0 :| xs0) = go Prefix [] [] (x0:xs0)
           popOp fx (arg2:arg1:out) (OpA Infix op) ops xs = go fx (termInfix arg1 op arg2 : out) ops xs
           popOp fx (arg1:out) (OpA Prefix op) ops xs = go fx (termPrefix op arg1 : out) ops xs
           popOp _ _ (OpA _ op) _ _ = Left (OpError $ "Not enough arguments to operator " ++ op)
+
+-- This is run at the beginning of resolvePrec and verifies certain
+-- invariants about the sequence of operators provided.
+verifySeq :: Show a => NonEmpty (OpTerm a) -> Either OpError ()
+verifySeq (Term _ :| []) = pure () -- Consumed the whole list, so we're done
+verifySeq (Term a :| Term b : _) = Left (OpError $ "Adjacent terms in operator parse: " ++ show a ++ ", " ++ show b)
+verifySeq (Term _ :| OpTerm b : []) = Left (OpError $ "Trailing infix operator " ++ show b ++ " in expression")
+verifySeq (Term _ :| OpTerm _ : x : xs) = verifySeq (x :| xs) -- Consume term and infix op
+verifySeq (OpTerm a :| []) = Left (OpError $ "Trailing prefix operator " ++ show a ++ " in expression")
+verifySeq (OpTerm _ :| x : xs) = verifySeq (x :| xs) -- Consume prefix op
