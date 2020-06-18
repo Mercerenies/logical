@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.Logic.Parser.Op where
+module Language.Logic.Parser.Op(OpTerm(..), Assoc(..), Op(..), TermComp(..), OpError(..), OpTable(..),
+                                defaultOp, getPrec, resolvePrec) where
 
 import Data.Map(Map)
 import qualified Data.Map as Map
