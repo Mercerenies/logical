@@ -21,6 +21,7 @@ data TokenPos = TokenPos SourcePos Int Token
 data Token = TokenVar String
            | TokenInt Integer
            | TokenAtom String
+           | TokenOperator String
            | TokenSpecial Spec
              deriving (Eq, Ord, Show)
 
@@ -44,7 +45,7 @@ sign = plus <|> minus <|> pure id
           minus = negate <$ char '-'
 
 pinteger :: Parser Integer
-pinteger = do
+pinteger = try $ do
   sgn <- sign
   value <- read <$> many1 digit
   return $ sgn value
