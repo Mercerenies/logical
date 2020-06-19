@@ -8,6 +8,7 @@ import Language.Logic.Parser
 import Language.Logic.Choice
 import Language.Logic.Error
 import Language.Logic.Eval
+import Language.Logic.Unify
 import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
@@ -42,7 +43,7 @@ arg3 _ = mzero
 -- before calling it as a goal.
 argsForCall :: EvalCtx' r => Fact -> Sem r Fact
 argsForCall (Fact _ []) = mzero -- TODO Is this an error?
-argsForCall (Fact _ (TermVar v : _)) = throw (VarNotDone v)
+argsForCall (Fact _ (TermVar v : _)) = throw (VarsNotDone [v])
 argsForCall (Fact _ (TermCompound f xs : ys)) = pure $ Fact f (xs ++ ys)
 argsForCall (Fact _ (t : _)) = throw (TypeError "compound term" t)
 
@@ -64,6 +65,51 @@ call = argsForCall >=> evalGoal
 
 block :: EvalCtx' r => Fact -> Sem r ()
 block (Fact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
+
+-- add takes three arguments. At least two must be ground. If all
+-- three are ground, it verifies that the first two sum to the third.
+-- If exactly one is a variable, it completes the arithmetic
+-- expression. If any terms are not variables or numbers, a type error
+-- is raised.
+add :: EvalCtx' r => Fact -> Sem r ()
+add = arg3 >=> \case
+      (TermNum a, TermNum b, TermNum c) -> guard (a + b == c)
+      (TermVar a, TermNum b, TermNum c) -> errorToChoice . void $ subAndUnify (TermVar a) (TermNum (c - b))
+      (TermNum a, TermVar b, TermNum c) -> errorToChoice . void $ subAndUnify (TermVar b) (TermNum (c - a))
+      (TermNum a, TermNum b, TermVar c) -> errorToChoice . void $ subAndUnify (TermVar c) (TermNum (a + b))
+      -- Beyond this, there's an error. We just need to decide which error
+      (a, b, c)
+          | invalid a -> throw (TypeError "variable or number" a)
+          | invalid b -> throw (TypeError "variable or number" b)
+          | invalid c -> throw (TypeError "variable or number" c)
+          | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
+    where invalid (TermVar _) = False
+          invalid (TermNum _) = False
+          invalid _ = True
+          varOf (TermVar v) = [v]
+          varOf _ = []
+
+-- mul operates like add in terms of requiring all arguments to be
+-- either numbers or variables and requiring at least two ground
+-- arguments. Division by zero will simply produce the appropriate
+-- floating point infinity or NaN.
+mul :: EvalCtx' r => Fact -> Sem r ()
+mul = arg3 >=> \case
+      (TermNum a, TermNum b, TermNum c) -> guard (a * b == c)
+      (TermVar a, TermNum b, TermNum c) -> errorToChoice . void $ subAndUnify (TermVar a) (TermNum (c / b))
+      (TermNum a, TermVar b, TermNum c) -> errorToChoice . void $ subAndUnify (TermVar b) (TermNum (c / a))
+      (TermNum a, TermNum b, TermVar c) -> errorToChoice . void $ subAndUnify (TermVar c) (TermNum (a * b))
+      -- Beyond this, there's an error. We just need to decide which error
+      (a, b, c)
+          | invalid a -> throw (TypeError "variable or number" a)
+          | invalid b -> throw (TypeError "variable or number" b)
+          | invalid c -> throw (TypeError "variable or number" c)
+          | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
+    where invalid (TermVar _) = False
+          invalid (TermNum _) = False
+          invalid _ = True
+          varOf (TermVar v) = [v]
+          varOf _ = []
 
 -- Evaluates the conditional only once. If the condition succeeds,
 -- evaluates the true argument. If it fails, evaluates the false
@@ -93,6 +139,12 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("block", [
             PrimClause "block" (builtinToPrim block)
+           ]),
+          ("add", [
+            PrimClause "add" (builtinToPrim add)
+           ]),
+          ("mul", [
+            PrimClause "mul" (builtinToPrim mul)
            ])
          ]
 

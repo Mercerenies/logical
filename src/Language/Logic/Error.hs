@@ -8,12 +8,12 @@ import Language.Logic.Term
 -- abort the whole program. Later, we may add some way to "catch"
 -- errors.
 
-data RuntimeError = VarNotDone String
+data RuntimeError = VarsNotDone [String]
                   | TypeError String Term
                     deriving (Eq)
 
 instance Show RuntimeError where
-    showsPrec _ (VarNotDone s) =
-        ("Variable " ++) . (s ++) . (" not sufficiently instantiated" ++)
+    showsPrec _ (VarsNotDone s) =
+        ("Variable(s) " ++) . shows s . (" not sufficiently instantiated" ++)
     showsPrec _ (TypeError exp_ act_) =
         ("Expecting " ++) . (exp_ ++) . (", got " ++) . shows act_
