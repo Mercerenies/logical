@@ -66,7 +66,7 @@ subOnce (Assumptions m) t = go t
               | Just t' <- Map.lookup v m = t'
               | otherwise = TermVar v
           go (TermCompound s ts) = TermCompound s (fmap go ts)
-          go (TermInt n) = TermInt n
+          go (TermNum n) = TermNum n
 
 subOnceInFact :: Assumptions -> Fact -> Fact
 subOnceInFact asm (Fact h ts) = Fact h $ fmap (subOnce asm) ts

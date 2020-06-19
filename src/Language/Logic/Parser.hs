@@ -45,7 +45,7 @@ compoundTerm' = block <|> compoundTerm
 
 term :: Parser Term
 term = TermVar <$> var <|>
-       TermInt <$> integer <|>
+       (TermNum . fromInteger) <$> integer <|>
        (special OpenParen *> term' <* special CloseParen) <|>
        uncurry TermCompound <$> compoundTerm'
 

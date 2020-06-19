@@ -11,6 +11,8 @@ import qualified Data.Map as Map
 import System.Environment
 import System.Exit
 
+-- ///// Arithmetic (starting with a numerical hierarchy type)
+
 main :: IO ()
 main = do
   args <- getArgs
@@ -42,9 +44,9 @@ main() :- bar(X).
 example :: CodeBody
 example = CodeBody (Map.fromList clauses)
     where clauses = [
-            ("foo", [StdClause (Fact "foo" [TermInt 1]) [],
-                     StdClause (Fact "foo" [TermInt 2]) [],
-                     StdClause (Fact "foo" [TermInt 3]) []]),
+            ("foo", [StdClause (Fact "foo" [TermNum 1]) [],
+                     StdClause (Fact "foo" [TermNum 2]) [],
+                     StdClause (Fact "foo" [TermNum 3]) []]),
             ("bar", [StdClause (Fact "bar" [TermVar "X"]) [Fact "foo" [TermVar "X"]]]),
             ("main", [StdClause (Fact "main" []) [Fact "bar" [TermVar "X"]]])
            ]

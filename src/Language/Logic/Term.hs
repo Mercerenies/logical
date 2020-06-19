@@ -5,17 +5,18 @@ module Language.Logic.Term(Term(..), Fact(..),
                            renameVars, renameInFact) where
 
 import qualified Language.Logic.Util as Util
+import Language.Logic.Number(Number(..))
 
 import Data.Char
 
 data Term = TermVar String
-          | TermInt Integer
+          | TermNum Number
           | TermCompound String [Term]
             deriving (Eq, Ord)
 
 instance Show Term where
     showsPrec _ (TermVar v) = (v ++)
-    showsPrec _ (TermInt n) = shows n
+    showsPrec _ (TermNum n) = shows n
     showsPrec _ (TermCompound s args) = showsAtomic s . ("(" ++) . args' . (")" ++)
         where args' = Util.sepBy ("," ++) $ fmap shows args
 
@@ -48,7 +49,7 @@ factBody (Fact _ t) = t
 
 freeVars :: Term -> [String]
 freeVars (TermVar s) = [s]
-freeVars (TermInt {}) = []
+freeVars (TermNum {}) = []
 freeVars (TermCompound _ ts) = concatMap freeVars ts
 
 freeVarsInFact :: Fact -> [String]
@@ -61,7 +62,7 @@ safeVar xs s = head $ filter (`notElem` xs) possibilities
 renameVars :: [String] -> Term -> Term
 renameVars xs t = go t
     where go (TermVar s) = TermVar $ replaceVar s
-          go (TermInt n) = TermInt n
+          go (TermNum n) = TermNum n
           go (TermCompound s args) = TermCompound s $ fmap go args
           xs' = xs ++ freeVars t
           replaceVar s

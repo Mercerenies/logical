@@ -33,20 +33,20 @@ unifyTestFail s t = TestCase $
 
 testEqual :: Test
 testEqual = TestLabel "testEqual" $ TestList [
-             unifyTestPass (TermInt 1) (TermInt 1) (TermInt 1) [],
+             unifyTestPass (TermNum 1) (TermNum 1) (TermNum 1) [],
              unifyTestPass (termAtom "a") (termAtom "a") (termAtom "a") [],
              let t = TermCompound "foo" [termAtom "a", TermCompound "b" []] in unifyTestPass t t t [],
-             unifyTestFail (TermInt 1) (TermInt 3),
+             unifyTestFail (TermNum 1) (TermNum 3),
              unifyTestFail (termAtom "a") (termAtom "b"),
-             unifyTestFail (termAtom "a") (TermInt 3),
-             let t = TermCompound "foo" [termAtom "a", TermCompound "b" []] in unifyTestFail t (TermInt 10),
-             let t x = TermCompound "foo" [termAtom "a", TermInt x] in unifyTestFail (t 10) (t 11)
+             unifyTestFail (termAtom "a") (TermNum 3),
+             let t = TermCompound "foo" [termAtom "a", TermCompound "b" []] in unifyTestFail t (TermNum 10),
+             let t x = TermCompound "foo" [termAtom "a", TermNum x] in unifyTestFail (t 10) (t 11)
             ]
 
 testSimpleVar :: Test
 testSimpleVar = TestLabel "testSimpleVar" $ TestList [
-                 unifyTestPass (TermVar "X") (TermInt 99) (TermInt 99) [("X", TermInt 99)],
-                 unifyTestPass (TermInt 99) (TermVar "X") (TermInt 99) [("X", TermInt 99)],
+                 unifyTestPass (TermVar "X") (TermNum 99) (TermNum 99) [("X", TermNum 99)],
+                 unifyTestPass (TermNum 99) (TermVar "X") (TermNum 99) [("X", TermNum 99)],
                  unifyTestPass (TermVar "X") (TermVar "Y") (TermVar "Y") [("X", TermVar "Y")],
                  unifyTestPass (TermVar "Y") (TermVar "X") (TermVar "Y") [("X", TermVar "Y")],
                  let t x = TermCompound "foo" [TermVar x] in
