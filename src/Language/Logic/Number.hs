@@ -64,7 +64,10 @@ instance Num Number where
     fromInteger = NumRat . fromInteger
 
 instance Fractional Number where
-    recip = numberMono recip recip
+    recip (NumRat x)
+        | x == 0 = NumFloat (recip 0)
+        | otherwise = NumRat (recip x)
+    recip (NumFloat x) = NumFloat (recip x)
     fromRational = NumRat
 
 instance Real Number where
