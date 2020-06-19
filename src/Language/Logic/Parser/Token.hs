@@ -2,14 +2,17 @@
 module Language.Logic.Parser.Token(TokenPos(..), Token(..), Spec(..),
                                    oneToken, readTokens,
                                    satisfy, satisfyTok,
-                                   var, integer, atom, operator, special) where
+                                   var, integer, ratio, float, atom, operator, special) where
 
 import Text.Parsec hiding (many, (<|>), satisfy, spaces)
 import qualified Text.Parsec as P
 
 import Data.Char
+import Data.Ratio
+import Data.Maybe
 import Control.Monad
 import Control.Applicative
+import qualified Text.Read as Read
 
 type Parser = Parsec String Int
 
@@ -20,6 +23,8 @@ data TokenPos = TokenPos SourcePos Int Token
 
 data Token = TokenVar String
            | TokenInt Integer
+           | TokenRat Rational
+           | TokenFloat Double
            | TokenAtom String
            | TokenOperator String
            | TokenSpecial Spec
@@ -49,6 +54,26 @@ pinteger = try $ do
   sgn <- sign
   value <- read <$> many1 digit
   return $ sgn value
+
+pratio :: Parser Rational
+pratio = try $ do
+  sgn <- sign
+  num <- read <$> many1 digit
+  _ <- P.satisfy (`elem` "Rr")
+  den <- read <$> many1 digit
+  when (den == 0) $ fail "denominator is zero"
+  return $ sgn (num % den)
+
+pfloat :: Parser Double
+pfloat = try $ do
+  intpart <- show <$> pinteger
+  decpart <- optionMaybe ((:) <$> char '.' <*> many1 digit)
+  exppart <- optionMaybe ((:) <$> P.satisfy (`elem` "Ee") <*> (show <$> pinteger))
+  when (isNothing decpart && isNothing exppart) $ fail "not a floating-point literal"
+  let str = intpart ++ maybe "" id decpart ++ maybe "" id exppart
+  case Read.readMaybe str of
+    Nothing -> fail "not a floating-point literal"
+    Just x -> pure x
 
 identifier :: Parser String
 identifier = liftA2 (:) startChar (many idChar)
@@ -113,6 +138,8 @@ spaces = skipMany (void spaceNotNewline <|> newlineChecked <|> lineComment)
 oneToken :: Parser TokenPos
 oneToken = TokenPos <$> getPosition <*> getState <*> tok
     where tok = TokenVar <$> pvar <|>
+                TokenRat <$> pratio <|>
+                TokenFloat <$> pfloat <|>
                 TokenInt <$> pinteger <|>
                 TokenAtom <$> (patom <|> patomQuoted) <|>
                 TokenOperator <$> poper <|>
@@ -142,6 +169,16 @@ integer :: Stream s m TokenPos => ParsecT s Int m Integer
 integer = satisfyTok $ \case
           TokenInt n -> Just n
           _ -> Nothing
+
+ratio :: Stream s m TokenPos => ParsecT s Int m Rational
+ratio = satisfyTok $ \case
+        TokenRat r -> Just r
+        _ -> Nothing
+
+float :: Stream s m TokenPos => ParsecT s Int m Double
+float = satisfyTok $ \case
+        TokenFloat d -> Just d
+        _ -> Nothing
 
 atom :: Stream s m TokenPos => ParsecT s Int m String
 atom = satisfyTok $ \case

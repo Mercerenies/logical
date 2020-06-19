@@ -5,6 +5,7 @@ import Language.Logic.Term
 import Language.Logic.Code
 import Language.Logic.Parser.Token
 import qualified Language.Logic.Parser.Op as Op
+import Language.Logic.Number(Number(..))
 
 import Text.Parsec hiding (satisfy)
 import Control.Monad
@@ -46,6 +47,8 @@ compoundTerm' = block <|> compoundTerm
 term :: Parser Term
 term = TermVar <$> var <|>
        (TermNum . fromInteger) <$> integer <|>
+       (TermNum . NumRat) <$> ratio <|>
+       (TermNum . NumFloat) <$> float <|>
        (special OpenParen *> term' <* special CloseParen) <|>
        uncurry TermCompound <$> compoundTerm'
 
