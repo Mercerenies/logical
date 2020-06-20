@@ -1,0 +1,6 @@
+
+operator infix *** : left 200.
+operator prefix ++ : right 100.
+
+main:
+  `++`(`***`(100, `--`(200))) = ++ 100 *** -- 200.
