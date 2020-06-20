@@ -51,6 +51,9 @@ pspecial = OpenParen  <$ char '(' <|>
 keywords :: [String]
 keywords = ["operator"]
 
+reservedOps :: [String]
+reservedOps = [":", "."]
+
 pkeyword :: Parser Keyword
 pkeyword = Operator <$ string "operator"
 
@@ -118,10 +121,13 @@ patomQuoted = do
 -- operators.
 
 operChar :: Parser Char
-operChar = P.satisfy (`elem` "!%&*+/<=>?@\\^|-~")
+operChar = P.satisfy (`elem` "!%&*+/<=>?@\\^|-~:.")
 
 poper :: Parser String
-poper = many1 operChar
+poper = try $ do
+  res <- many1 operChar
+  guard $ not (res `elem` reservedOps)
+  return res
 
 pvar :: Parser String
 pvar = try $ do
