@@ -10,7 +10,9 @@ import Language.Logic.Number(Number(..))
 
 import Text.Parsec hiding (satisfy)
 import Control.Monad
+import Control.Monad.Reader
 import Control.Applicative(liftA2)
+import Data.Function((&))
 import Data.List(foldl')
 import Data.Maybe(mapMaybe)
 import Data.List.NonEmpty(NonEmpty(..))
@@ -21,7 +23,13 @@ import qualified Data.Map as Map
 -- I figure we might as well leave the functionality in in case we
 -- need it later. It's not currently used by the parser.
 
-type Parser = Parsec [TokenPos] Int
+-- It would be kind of nice if this was a Polysemy effect since we're
+-- using Polysemy everywhere else. But Parsec is pretty obviously
+-- built with mtl in mind. We could hypothetically embed all of our
+-- effects using Polysemy, but that would be messy and introduce a ton
+-- of boilerplate, so it's just simpler to use a small mtl-style monad
+-- stack here.
+type Parser = ParsecT [TokenPos] Int (Reader Op.OpTable)
 
 {-
 currentIndent :: Parser Int
@@ -59,8 +67,8 @@ term' :: Parser Term
 term' = do
   firstterm <- Op.Term <$> term
   restterms <- concat <$> many (liftA2 (\xs y -> fmap Op.OpTerm xs ++ [Op.Term y]) (many1 operator) term)
-  let optable = Op.OpTable Map.empty
-      comp = Op.TermComp (\a s b -> TermCompound s [a, b]) (\s a -> TermCompound s [a])
+  optable <- ask
+  let comp = Op.TermComp (\a s b -> TermCompound s [a, b]) (\s a -> TermCompound s [a])
       result = Op.resolvePrec optable comp (firstterm :| restterms)
   either (fail . show) pure result
 
@@ -112,14 +120,16 @@ condClause = do
 decl :: Parser Decl
 decl = operatorDecl
 
+-- TODO Omit associativity for prefix operators (it's ignored anyway)
 operatorDecl :: Parser Decl
 operatorDecl = do
   _ <- keyword Operator
   fx <- fixity
   name <- operator
   _ <- special Colon
-  pr <- fromInteger <$> integer
   as <- assoc
+  pr <- fromInteger <$> integer
+  _ <- special Dot
   return $ OperatorDecl (Op.OpA fx name) (Op.Op pr as)
 
 fixity :: Parser Op.Fixity
@@ -154,9 +164,10 @@ handleOpDecls (OperatorDecl opa op) (Op.OpTable m) = Op.OpTable (Map.insert opa 
 -- containing correctly parenthesized operator expressions.
 parseText :: String -> [TokenPos] -> Either ParseError [Clause]
 parseText srcname toks = do
-  firstParse <- runP (topLevelClauses <* eof) 0 srcname toks
-  let _ = foldl' (flip handleOpDecls) (Op.OpTable Map.empty) $ mapMaybe toDecl firstParse
-  secondParse <- runP (topLevelClauses <* eof) 0 srcname toks
+  let table0 = Op.OpTable Map.empty -- TODO Take this as an argument (if we're reading multiple files)
+  firstParse <- runPT (topLevelClauses <* eof) 0 srcname toks & flip runReader table0
+  let table1 = foldl' (flip handleOpDecls) table0 $ mapMaybe toDecl firstParse
+  secondParse <- runPT (topLevelClauses <* eof) 0 srcname toks & flip runReader table1
   return $ mapMaybe toClause secondParse
 
 tokenizeAndParse :: String -> String -> Either ParseError [Clause]

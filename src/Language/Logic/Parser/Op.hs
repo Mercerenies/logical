@@ -39,7 +39,7 @@ instance Functor OpTerm where
 newtype OpTable = OpTable (Map OpA Op)
 
 defaultOp :: Op
-defaultOp = Op 0 AssocLeft -- TODO Actually decide this
+defaultOp = Op 40 AssocLeft
 
 getPrec :: OpA -> OpTable -> Op
 getPrec s (OpTable m) =
