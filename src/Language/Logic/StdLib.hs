@@ -1,6 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 
-module Language.Logic.StdLib where
+module Language.Logic.StdLib(stdlib, getPrelude) where
 
 import Language.Logic.Code
 import Language.Logic.Term
@@ -9,6 +9,7 @@ import Language.Logic.Choice
 import Language.Logic.Error
 import Language.Logic.Eval
 import Language.Logic.Unify
+import Language.Logic.StdLib.Arithmetic
 import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
@@ -22,9 +23,9 @@ import qualified Data.Map as Map
 
 type EvalCtx' r = (EvalCtx r, Member NonDet r)
 
-arg0 :: EvalCtx' r => Fact -> Sem r ()
-arg0 (Fact _ []) = pure ()
-arg0 _ = mzero
+_arg0 :: EvalCtx' r => Fact -> Sem r ()
+_arg0 (Fact _ []) = pure ()
+_arg0 _ = mzero
 
 arg1 :: EvalCtx' r => Fact -> Sem r Term
 arg1 (Fact _ [x]) = pure x
@@ -111,6 +112,9 @@ mul = arg3 >=> \case
           varOf (TermVar v) = [v]
           varOf _ = []
 
+arithEval :: EvalCtx' r => Fact -> Sem r ()
+arithEval = arg2 >=> \(x, t) -> evalArith t >>= errorToChoice . void . subAndUnify x . TermNum
+
 -- Evaluates the conditional only once. If the condition succeeds,
 -- evaluates the true argument. If it fails, evaluates the false
 -- argument. The conditional is only evaluated once, but the other two
@@ -133,6 +137,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("call", [
             PrimClause "call" (builtinToPrim call)
+           ]),
+          ("=:", [
+            PrimClause "=:" (builtinToPrim arithEval)
            ]),
           ("if", [
             PrimClause "if" (builtinToPrim if_)

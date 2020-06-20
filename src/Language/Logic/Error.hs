@@ -10,6 +10,7 @@ import Language.Logic.Term
 
 data RuntimeError = VarsNotDone [String]
                   | TypeError String Term
+                  | ArithmeticError String
                     deriving (Eq)
 
 instance Show RuntimeError where
@@ -17,3 +18,5 @@ instance Show RuntimeError where
         ("Variable(s) " ++) . shows s . (" not sufficiently instantiated" ++)
     showsPrec _ (TypeError exp_ act_) =
         ("Expecting " ++) . (exp_ ++) . (", got " ++) . shows act_
+    showsPrec _ (ArithmeticError s) =
+        ("Arithmetic error: " ++) . (s ++)

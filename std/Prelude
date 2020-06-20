@@ -2,6 +2,7 @@
 operator  infix || :  left 10.
 operator  infix && :  left 20.
 operator  infix  = :  left 30.
+operator  infix =: :  left 30.
 operator  infix  + :  left 50.
 operator  infix  - :  left 50.
 operator prefix  - : right 50.
