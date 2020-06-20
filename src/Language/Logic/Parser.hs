@@ -3,6 +3,7 @@ module Language.Logic.Parser(parseText, tokenizeAndParse) where
 
 import Language.Logic.Term
 import Language.Logic.Code
+import Language.Logic.Decl
 import Language.Logic.Parser.Token
 import qualified Language.Logic.Parser.Op as Op
 import Language.Logic.Number(Number(..))
@@ -10,6 +11,8 @@ import Language.Logic.Number(Number(..))
 import Text.Parsec hiding (satisfy)
 import Control.Monad
 import Control.Applicative(liftA2)
+import Data.List(foldl')
+import Data.Maybe(mapMaybe)
 import Data.List.NonEmpty(NonEmpty(..))
 import qualified Data.Map as Map
 
@@ -106,14 +109,55 @@ condClause = do
   _ <- special Dot
   return $ StdClause fct [inner]
 
+decl :: Parser Decl
+decl = operatorDecl
+
+operatorDecl :: Parser Decl
+operatorDecl = do
+  _ <- keyword Operator
+  fx <- fixity
+  name <- operator
+  _ <- special Colon
+  pr <- fromInteger <$> integer
+  as <- assoc
+  return $ OperatorDecl (Op.OpA fx name) (Op.Op pr as)
+
+fixity :: Parser Op.Fixity
+fixity = (Op.Infix <$ litAtom "infix") <|>
+         (Op.Prefix <$ litAtom "prefix")
+
+assoc :: Parser Op.Assoc
+assoc = (Op.AssocLeft <$ litAtom "left") <|>
+        (Op.AssocRight <$ litAtom "right")
+
 -- clauseBody :: Parser [Fact]
 -- clauseBody = sepBy fact (special Semicolon)
 
-topLevelClauses :: Parser [Clause]
-topLevelClauses = many clause
+clauseOrDecl :: Parser ClauseOrDecl
+clauseOrDecl = (Clause <$> clause) <|>
+               (Decl <$> decl)
 
+topLevelClauses :: Parser [ClauseOrDecl]
+topLevelClauses = many clauseOrDecl
+
+-- TODO What if we try to change the precedence of an existing
+-- operator? Is that an error? Perhaps a warning?
+handleOpDecls :: Decl -> Op.OpTable -> Op.OpTable
+handleOpDecls (OperatorDecl opa op) (Op.OpTable m) = Op.OpTable (Map.insert opa op m)
+
+-- It's not ideal, but currently we parse the text twice. The first
+-- time, we parse with no operator table (thus, operator expressions
+-- will be parenthesized incorrectly but will still parse), and we
+-- extract all of the operator precedence declarations to build up an
+-- operator table. The second time, we parse with the correct operator
+-- table and discard operator declarations, leaving only clauses
+-- containing correctly parenthesized operator expressions.
 parseText :: String -> [TokenPos] -> Either ParseError [Clause]
-parseText = runP (topLevelClauses <* eof) 0
+parseText srcname toks = do
+  firstParse <- runP (topLevelClauses <* eof) 0 srcname toks
+  let _ = foldl' (flip handleOpDecls) (Op.OpTable Map.empty) $ mapMaybe toDecl firstParse
+  secondParse <- runP (topLevelClauses <* eof) 0 srcname toks
+  return $ mapMaybe toClause secondParse
 
 tokenizeAndParse :: String -> String -> Either ParseError [Clause]
 tokenizeAndParse src = readTokens src >=> parseText src

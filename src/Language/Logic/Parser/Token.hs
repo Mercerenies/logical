@@ -1,8 +1,8 @@
 
-module Language.Logic.Parser.Token(TokenPos(..), Token(..), Spec(..),
+module Language.Logic.Parser.Token(TokenPos(..), Token(..), Spec(..), Keyword(..),
                                    oneToken, readTokens,
                                    satisfy, satisfyTok,
-                                   var, integer, ratio, float, atom, operator, special) where
+                                   var, integer, ratio, float, atom, litAtom, operator, special, keyword) where
 
 import Text.Parsec hiding (many, (<|>), satisfy, spaces)
 import qualified Text.Parsec as P
@@ -28,11 +28,15 @@ data Token = TokenVar String
            | TokenAtom String
            | TokenOperator String
            | TokenSpecial Spec
+           | TokenKeyword Keyword
              deriving (Eq, Ord, Show)
 
 data Spec = OpenParen | CloseParen | Colon | Semicolon | Dot | Comma |
             OpenBrace | CloseBrace
             deriving (Eq, Ord, Enum, Show)
+
+data Keyword = Operator
+               deriving (Eq, Ord, Enum, Show)
 
 pspecial :: Parser Spec
 pspecial = OpenParen  <$ char '(' <|>
@@ -43,6 +47,12 @@ pspecial = OpenParen  <$ char '(' <|>
            Comma      <$ char ',' <|>
            OpenBrace  <$ char '{' <|>
            CloseBrace <$ char '}'
+
+keywords :: [String]
+keywords = ["operator"]
+
+pkeyword :: Parser Keyword
+pkeyword = Operator <$ string "operator"
 
 sign :: Num a => Parser (a -> a)
 sign = plus <|> minus <|> pure id
@@ -76,7 +86,10 @@ pfloat = try $ do
     Just x -> pure x
 
 identifier :: Parser String
-identifier = liftA2 (:) startChar (many idChar)
+identifier = try $ do
+     res <- liftA2 (:) startChar (many idChar)
+     guard $ not (res `elem` keywords)
+     return res
     where startChar = letter <|> char '_'
           idChar = startChar <|> digit
 
@@ -143,7 +156,8 @@ oneToken = TokenPos <$> getPosition <*> getState <*> tok
                 TokenInt <$> pinteger <|>
                 TokenAtom <$> (patom <|> patomQuoted) <|>
                 TokenOperator <$> poper <|>
-                TokenSpecial <$> pspecial
+                TokenSpecial <$> pspecial <|>
+                TokenKeyword <$> pkeyword
 
 readTokens :: String -> String -> Either ParseError [TokenPos]
 readTokens = runP (many (spaces *> oneToken <* spaces) <* eof) 0
@@ -185,6 +199,9 @@ atom = satisfyTok $ \case
        TokenAtom s -> Just s
        _ -> Nothing
 
+litAtom :: Stream s m TokenPos => String -> ParsecT s Int m String
+litAtom s = try (atom >>= \s' -> guard (s == s') >> return s')
+
 operator :: Stream s m TokenPos => ParsecT s Int m String
 operator = satisfyTok $ \case
            TokenOperator s -> Just s
@@ -193,4 +210,9 @@ operator = satisfyTok $ \case
 special :: Stream s m TokenPos => Spec -> ParsecT s Int m Spec
 special s = satisfyTok $ \case
             TokenSpecial s' | s == s' -> Just s'
+            _ -> Nothing
+
+keyword :: Stream s m TokenPos => Keyword -> ParsecT s Int m Keyword
+keyword s = satisfyTok $ \case
+            TokenKeyword s' | s == s' -> Just s'
             _ -> Nothing
