@@ -17,7 +17,7 @@ data Fixity = Infix | Prefix
 data OpA = OpA Fixity String
            deriving (Eq, Ord)
 
-data Assoc = AssocLeft | AssocRight | AssocNone
+data Assoc = AssocLeft | AssocRight
              deriving (Show, Read, Eq, Ord, Enum)
 
 data Op = Op Int Assoc
@@ -39,10 +39,13 @@ instance Functor OpTerm where
 newtype OpTable = OpTable (Map OpA Op)
 
 defaultOp :: Op
-defaultOp = Op 0 AssocNone -- TODO Actually decide this
+defaultOp = Op 0 AssocLeft -- TODO Actually decide this
 
 getPrec :: OpA -> OpTable -> Op
-getPrec s (OpTable m) = Map.findWithDefault defaultOp s m
+getPrec s (OpTable m) =
+    let OpA fx _ = s
+        Op pr as = Map.findWithDefault defaultOp s m in
+    if fx == Prefix then Op pr AssocRight else Op pr as -- Prefix operators always right-associate
 
 resolvePrec :: forall a. Show a => OpTable -> TermComp a -> NonEmpty (OpTerm a) -> Either OpError a
 resolvePrec table (TermComp {..}) (x0 :| xs0) = verifySeq (x0 :| xs0) >> go Prefix [] [] (x0:xs0)
