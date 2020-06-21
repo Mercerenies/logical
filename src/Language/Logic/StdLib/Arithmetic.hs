@@ -20,15 +20,15 @@ _arg0 :: [Number] -> Either RuntimeError ()
 _arg0 [] = pure ()
 _arg0 _ = throwArith "Expecting zero arguments"
 
-_arg1 :: [Number] -> Either RuntimeError Number
-_arg1 [x] = pure x
-_arg1 _ = throwArith "Expecting one argument"
+_arg1 :: (Number -> a) -> [Number] -> Either RuntimeError a
+_arg1 f [x] = pure (f x)
+_arg1 _ _ = throwArith "Expecting one argument"
 
-_arg2 :: [Number] -> Either RuntimeError (Number, Number)
-_arg2 [x, y] = pure (x, y)
-_arg2 _ = throwArith "Expecting two arguments"
+arg2 :: (Number -> Number -> a) -> [Number] -> Either RuntimeError a
+arg2 f [x, y] = pure $ f x y
+arg2 _ _ = throwArith "Expecting two arguments"
 
-arg1or2 :: (Number -> Number) -> (Number -> Number -> Number) -> [Number] -> Either RuntimeError Number
+arg1or2 :: (Number -> a) -> (Number -> Number -> a) -> [Number] -> Either RuntimeError a
 arg1or2 f g xs = case xs of
                    [x] -> pure $ f x
                    [x, y] -> pure $ g x y
@@ -37,7 +37,9 @@ arg1or2 f g xs = case xs of
 arithFunctions :: ArithFns
 arithFunctions = Map.fromList [
                   ("+", arg1or2 id (+)),
-                  ("-", arg1or2 negate (-))
+                  ("-", arg1or2 negate (-)),
+                  ("*", arg2 (*)),
+                  ("/", arg2 (/))
                  ]
 
 evalArithWith :: Member (Error RuntimeError) r => ArithFns -> Term -> Sem r Number
