@@ -5,6 +5,7 @@ module Language.Logic.StdLib(stdlib, getPrelude) where
 import Language.Logic.Code
 import Language.Logic.Term
 import Language.Logic.Parser
+import Language.Logic.Parser.Op(OpTable(..))
 import Language.Logic.Choice
 import Language.Logic.Error
 import Language.Logic.Eval
@@ -164,9 +165,9 @@ stdlib = CodeBody $ Map.fromList [
            ])
          ]
 
-getPrelude :: IO CodeBody
+getPrelude :: IO (CodeBody, OpTable)
 getPrelude = do
   code <- readFile "std/Prelude"
-  case tokenizeAndParse "std/Prelude" code of
+  case tokenizeAndParse (OpTable mempty) "std/Prelude" code of
     Left err -> fail (show err)
-    Right clauses -> return $ stdlib <> consolidateClauses clauses
+    Right (clauses, op) -> return (stdlib <> consolidateClauses clauses, op)

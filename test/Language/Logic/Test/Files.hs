@@ -22,8 +22,8 @@ runTestFile :: FilePath -> Test
 runTestFile fpath = TestLabel fpath $ TestCase go
     where go = do
             contents <- readFile fpath
-            clauses <- eitherToIO (tokenizeAndParse fpath contents)
-            prelude <- getPrelude
+            (prelude, op) <- getPrelude
+            (clauses, _) <- eitherToIO (tokenizeAndParse op fpath contents)
             let body = prelude <> consolidateClauses clauses
             runProgram body >>= eitherToIO
 

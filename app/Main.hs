@@ -18,10 +18,10 @@ main = do
     [] -> putStrLn "Please provide an input filename" >> exitFailure
     (fname:_) -> do
         contents <- readFile fname
-        case tokenizeAndParse fname contents of
+        (prelude, op) <- getPrelude
+        case tokenizeAndParse op fname contents of
           Left err -> print err >> exitFailure
-          Right clauses -> do
-              prelude <- getPrelude
+          Right (clauses, _) -> do
               let body = prelude <> consolidateClauses clauses
               runProgram body >>= \case
                 Left err -> print err >> exitFailure

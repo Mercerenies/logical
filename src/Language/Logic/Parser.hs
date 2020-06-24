@@ -162,13 +162,12 @@ handleOpDecls (OperatorDecl opa op) (Op.OpTable m) = Op.OpTable (Map.insert opa 
 -- operator table. The second time, we parse with the correct operator
 -- table and discard operator declarations, leaving only clauses
 -- containing correctly parenthesized operator expressions.
-parseText :: String -> [TokenPos] -> Either ParseError [Clause]
-parseText srcname toks = do
-  let table0 = Op.OpTable Map.empty -- TODO Take this as an argument (if we're reading multiple files)
+parseText :: Op.OpTable -> String -> [TokenPos] -> Either ParseError ([Clause], Op.OpTable)
+parseText table0 srcname toks = do
   firstParse <- runPT (topLevelClauses <* eof) 0 srcname toks & flip runReader table0
   let table1 = foldl' (flip handleOpDecls) table0 $ mapMaybe toDecl firstParse
   secondParse <- runPT (topLevelClauses <* eof) 0 srcname toks & flip runReader table1
-  return $ mapMaybe toClause secondParse
+  return (mapMaybe toClause secondParse, table1)
 
-tokenizeAndParse :: String -> String -> Either ParseError [Clause]
-tokenizeAndParse src = readTokens src >=> parseText src
+tokenizeAndParse :: Op.OpTable -> String -> String -> Either ParseError ([Clause], Op.OpTable)
+tokenizeAndParse op src = readTokens src >=> parseText op src

@@ -1,0 +1,23 @@
+
+# The same as samplefile9.txt but with the arithmetic operator =:
+# rather than add/3 and mul/3.
+
+factorial(0, 1).
+factorial(N, NF): {
+  N > 0;
+  M =: N - 1;
+  factorial(M, MF);
+  NF =: N * MF;
+}.
+
+print_facts(10). # Stop looping
+print_facts(N): {
+  N < 10;
+  factorial(N, NF);
+  write_term(NF);
+  N1 =: N + 1;
+  print_facts(N1);
+}.
+
+main:
+  once( print_facts(0) ).
