@@ -4,11 +4,14 @@ module Main where
 import qualified Language.Logic.Test.Unify
 import qualified Language.Logic.Test.Term
 import qualified Language.Logic.Test.Files
+import qualified Language.Logic.Test.SymbolTable
+import qualified Language.Logic.Test.SymbolTable.Monad
 
 import Test.HUnit
 
 coreTests :: [Test]
-coreTests = [Language.Logic.Test.Unify.tests, Language.Logic.Test.Term.tests]
+coreTests = [Language.Logic.Test.Unify.tests, Language.Logic.Test.Term.tests, Language.Logic.Test.SymbolTable.tests,
+             Language.Logic.Test.SymbolTable.Monad.tests]
 
 vmTests :: IO Test
 vmTests = Language.Logic.Test.Files.allTestFiles

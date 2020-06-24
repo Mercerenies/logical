@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a3d26383b30e2420303df6b19059457654cc5a2f7eef5e7d2a02f4d829a7284c
+-- hash: ebb71aad8fd4a7348a0f093512f67c5716b05293a9c827a8543db10bd99c4101
 
 name:           logical
 version:        0.1.0.0
@@ -40,6 +40,8 @@ library
       Language.Logic.Parser.Token
       Language.Logic.StdLib
       Language.Logic.StdLib.Arithmetic
+      Language.Logic.SymbolTable
+      Language.Logic.SymbolTable.Monad
       Language.Logic.Term
       Language.Logic.Unify
       Language.Logic.Unique
@@ -58,6 +60,8 @@ library
     , parsec >=3.1 && <3.2
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
+    , text >=1.2 && <2
+    , unordered-containers >=0.2 && <1
   default-language: Haskell2010
 
 executable logical-exe
@@ -77,6 +81,8 @@ executable logical-exe
     , parsec >=3.1 && <3.2
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
+    , text >=1.2 && <2
+    , unordered-containers >=0.2 && <1
   default-language: Haskell2010
 
 test-suite logical-test
@@ -84,6 +90,8 @@ test-suite logical-test
   main-is: Spec.hs
   other-modules:
       Language.Logic.Test.Files
+      Language.Logic.Test.SymbolTable
+      Language.Logic.Test.SymbolTable.Monad
       Language.Logic.Test.Term
       Language.Logic.Test.Unify
       Paths_logical
@@ -101,4 +109,6 @@ test-suite logical-test
     , parsec >=3.1 && <3.2
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
+    , text >=1.2 && <2
+    , unordered-containers >=0.2 && <1
   default-language: Haskell2010
