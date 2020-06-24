@@ -37,8 +37,15 @@ instance Monoid CodeBody where
     mempty = CodeBody mempty
 
 instance Show Clause where
+    showsPrec _ (StdClause h []) = shows h . ("." ++)
     showsPrec _ (StdClause h ts) = shows h . (": " ++) . Util.sepBy (" " ++) (fmap shows ts)
     showsPrec _ (PrimClause s _) = (s ++) . (": (primitive)" ++)
+
+instance Show CodeBody where
+    showsPrec _ (CodeBody m) =
+        let clauses = map snd $ Map.toAscList m
+            str = fmap (\cs -> foldr (.) id (fmap (\c -> shows c . ("\n" ++)) cs) . ("\n" ++)) clauses
+        in foldr (.) id str
 
 lookupHead :: String -> CodeBody -> [Clause]
 lookupHead s (CodeBody m) = maybe [] id $ Map.lookup s m

@@ -24,8 +24,7 @@ data Fact = Fact String [Term]
             deriving (Eq, Ord)
 
 instance Show Fact where
-    showsPrec _ (Fact s args) = (s ++) . ("(" ++) . args' . (")" ++)
-        where args' = Util.sepBy ("," ++) $ fmap shows args
+    showsPrec n (Fact s args) = showsPrec n (TermCompound s args)
 
 isStdAtom :: String -> Bool
 isStdAtom [] = False

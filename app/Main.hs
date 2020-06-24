@@ -22,7 +22,9 @@ main = do
         case tokenizeAndParse op fname contents of
           Left err -> print err >> exitFailure
           Right (clauses, _) -> do
-              let body = prelude <> consolidateClauses clauses
+              let clauses' = consolidateClauses clauses
+                  body = prelude <> clauses'
+              --print clauses'
               runProgram body >>= \case
                 Left err -> print err >> exitFailure
                 Right () -> pure ()
