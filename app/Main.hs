@@ -11,8 +11,6 @@ import qualified Data.Map as Map
 import System.Environment
 import System.Exit
 
--- ///// Arithmetic (starting with a numerical hierarchy type)
-
 main :: IO ()
 main = do
   args <- getArgs

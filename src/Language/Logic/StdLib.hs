@@ -115,6 +115,12 @@ mul = arg3 >=> \case
 arithEval :: EvalCtx' r => Fact -> Sem r ()
 arithEval = arg2 >=> \(x, t) -> evalArith t >>= errorToChoice . void . subAndUnify x . TermNum
 
+-- Evaluates the arithmetic expression. If the result is zero, this
+-- predicate fails. If not, the predicate succeeds once without
+-- unifying anything. The argument must be fully ground.
+arithGuard :: EvalCtx' r => Fact -> Sem r ()
+arithGuard = arg1 >=> \t -> evalArith t >>= \t' -> if t' == 0 then mzero else pure ()
+
 -- Evaluates the conditional only once. If the condition succeeds,
 -- evaluates the true argument. If it fails, evaluates the false
 -- argument. The conditional is only evaluated once, but the other two
@@ -140,6 +146,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("=:", [
             PrimClause "=:" (builtinToPrim arithEval)
+           ]),
+          ("guard", [
+            PrimClause "guard" (builtinToPrim arithGuard)
            ]),
           ("if", [
             PrimClause "if" (builtinToPrim if_)

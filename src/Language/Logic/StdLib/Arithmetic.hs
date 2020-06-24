@@ -34,12 +34,22 @@ arg1or2 f g xs = case xs of
                    [x, y] -> pure $ g x y
                    _ -> throwArith "Expecting one or two arguments"
 
+fromBool :: Num a => Bool -> a
+fromBool False = 0
+fromBool True  = 1
+
 arithFunctions :: ArithFns
 arithFunctions = Map.fromList [
                   ("+", arg1or2 id (+)),
                   ("-", arg1or2 negate (-)),
                   ("*", arg2 (*)),
-                  ("/", arg2 (/))
+                  ("/", arg2 (/)),
+                  ("<", arg2 $ \x y -> fromBool $ x < y),
+                  (">", arg2 $ \x y -> fromBool $ x > y),
+                  ("<=", arg2 $ \x y -> fromBool $ x <= y),
+                  (">=", arg2 $ \x y -> fromBool $ x >= y),
+                  ("==", arg2 $ \x y -> fromBool $ x == y),
+                  ("!=", arg2 $ \x y -> fromBool $ x /= y)
                  ]
 
 evalArithWith :: Member (Error RuntimeError) r => ArithFns -> Term -> Sem r Number

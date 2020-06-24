@@ -1,0 +1,19 @@
+
+main: {
+  guard(1 < 2);
+  guard(2 > 1);
+  guard(1 <= 2);
+  guard(2 >= 1);
+  guard(1 <= 1);
+  guard(1 >= 1);
+  guard(1 == 1);
+  guard(1 != 2);
+  not(guard(2 < 1));
+  not(guard(1 < 1));
+  not(guard(1 > 2));
+  not(guard(1 < 1));
+  not(guard(2 <= 1));
+  not(guard(1 >= 2));
+  not(guard(1 != 1));
+  not(guard(1 == 2));
+}.

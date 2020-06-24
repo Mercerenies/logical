@@ -3,11 +3,17 @@ operator  infix || :  left 10.
 operator  infix && :  left 20.
 operator  infix  = :  left 30.
 operator  infix =: :  left 30.
-operator  infix  + :  left 50.
-operator  infix  - :  left 50.
-operator prefix  - : right 50.
-operator  infix  * :  left 60.
-operator  infix  / :  left 60.
+operator  infix  < :  left 40.
+operator  infix  > :  left 40.
+operator  infix <= :  left 40.
+operator  infix >= :  left 40.
+operator  infix == :  left 40.
+operator  infix != :  left 40.
+operator  infix  + :  left 60.
+operator  infix  - :  left 60.
+operator prefix  - : right 60.
+operator  infix  * :  left 70.
+operator  infix  / :  left 70.
 
 false:
   fail.
@@ -38,3 +44,11 @@ A || B:
   call(A).
 A || B:
   call(B).
+
+# Comparison operators
+A <  B: guard(A <  B).
+A >  B: guard(A >  B).
+A <= B: guard(A <= B).
+A >= B: guard(A >= B).
+A == B: guard(A == B).
+A != B: guard(A != B).

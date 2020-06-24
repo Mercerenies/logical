@@ -5,7 +5,7 @@
 
 factorial(0, 1).
 factorial(N, NF): {
-  # TODO Same note as below.
+  N > 0;
   add(M, 1, N);
   factorial(M, MF);
   mul(N, MF, NF);
@@ -13,11 +13,7 @@ factorial(N, NF): {
 
 print_facts(10). # Stop looping
 print_facts(N): {
-  # TODO We should put a condition in here that N < 10 to block
-  # branching after the loop terminates. We don't have relational
-  # operators yet, but we will soon. (If you're reading this and the
-  # language has relational operators, then I'm lazy and haven't
-  # updated this example and you should come yell at me)
+  N < 10;
   factorial(N, NF);
   write_term(NF);
   add(N, 1, N1);
