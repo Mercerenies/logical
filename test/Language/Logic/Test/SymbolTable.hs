@@ -13,10 +13,10 @@ tests = TestLabel "Language.Logic.Test.SymbolTable" $
         TestList [testNotEqual]
 
 internSeveral :: [T.Text] -> SymbolTable -> SymbolTable
-internSeveral xs s0 = foldl' (\s t -> snd $ internInTable t s) s0 xs
+internSeveral xs s0 = foldl' (\s t -> snd $ intern t s) s0 xs
 
 internForId :: SymbolTable -> T.Text -> SymbolId
-internForId s t = fst $ internInTable t s
+internForId s t = fst $ intern t s
 
 testNotEqual :: Test
 testNotEqual = TestLabel "testNotEqual" $ TestList [

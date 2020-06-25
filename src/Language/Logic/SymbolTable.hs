@@ -1,5 +1,5 @@
 
-module Language.Logic.SymbolTable(SymbolTable(), SymbolId, emptyTable, internInTable) where
+module Language.Logic.SymbolTable(SymbolTable(), SymbolId, emptyTable, intern) where
 
 import Data.HashMap.Strict(HashMap)
 import qualified Data.HashMap.Strict as HashMap
@@ -15,8 +15,8 @@ type SymbolId = Integer
 emptyTable :: SymbolTable
 emptyTable = SymbolTable HashMap.empty 0
 
-internInTable :: T.Text -> SymbolTable -> (SymbolId, SymbolTable)
-internInTable t (SymbolTable m imax) =
+intern :: T.Text -> SymbolTable -> (SymbolId, SymbolTable)
+intern t (SymbolTable m imax) =
     case HashMap.lookup t m of
       Just i -> (i, SymbolTable m imax)
       Nothing -> (imax, SymbolTable (HashMap.insert t imax m) (imax + 1))

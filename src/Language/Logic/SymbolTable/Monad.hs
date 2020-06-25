@@ -3,7 +3,8 @@ module Language.Logic.SymbolTable.Monad(SymbolTableState(..), intern,
                                         runSymbolTableState, evalSymbolTableState,
                                         runSymbolTableStateTrivially) where
 
-import Language.Logic.SymbolTable
+import Language.Logic.SymbolTable(SymbolTable)
+import qualified Language.Logic.SymbolTable as SymbolTable
 
 import Polysemy
 import Polysemy.State
@@ -28,6 +29,6 @@ toState :: Sem (SymbolTableState Integer ': r) a -> Sem (State SymbolTable ': r)
 toState = reinterpret $ \case
           Intern t -> do
             table <- get
-            let (i, table') = internInTable t table
+            let (i, table') = SymbolTable.intern t table
             put $! table'
             return i
