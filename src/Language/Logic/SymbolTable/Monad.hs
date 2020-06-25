@@ -28,6 +28,6 @@ toState :: Sem (SymbolTableState Integer ': r) a -> Sem (State SymbolTable ': r)
 toState = reinterpret $ \case
           Intern t -> do
             table <- get
-            let (i, table') = internInTable table t
+            let (i, table') = internInTable t table
             put $! table'
             return i

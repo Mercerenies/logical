@@ -15,8 +15,8 @@ type SymbolId = Integer
 emptyTable :: SymbolTable
 emptyTable = SymbolTable HashMap.empty 0
 
-internInTable :: SymbolTable -> T.Text -> (SymbolId, SymbolTable)
-internInTable (SymbolTable m imax) t =
+internInTable :: T.Text -> SymbolTable -> (SymbolId, SymbolTable)
+internInTable t (SymbolTable m imax) =
     case HashMap.lookup t m of
       Just i -> (i, SymbolTable m imax)
       Nothing -> (imax, SymbolTable (HashMap.insert t imax m) (imax + 1))
