@@ -32,3 +32,5 @@ toState = reinterpret $ \case
             let (i, table') = SymbolTable.intern t table
             put $! table'
             return i
+
+ -- ///// Use this in the parser and evaluator...
