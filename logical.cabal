@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ebb71aad8fd4a7348a0f093512f67c5716b05293a9c827a8543db10bd99c4101
+-- hash: 3e7cbb08fb1bc88e769334e36de33730f1ea6e2a00533f87584d2da2cb1b559d
 
 name:           logical
 version:        0.1.0.0
@@ -42,6 +42,7 @@ library
       Language.Logic.StdLib.Arithmetic
       Language.Logic.SymbolTable
       Language.Logic.SymbolTable.Monad
+      Language.Logic.Tagged
       Language.Logic.Term
       Language.Logic.Unify
       Language.Logic.Unique
@@ -92,6 +93,7 @@ test-suite logical-test
       Language.Logic.Test.Files
       Language.Logic.Test.SymbolTable
       Language.Logic.Test.SymbolTable.Monad
+      Language.Logic.Test.Tagged
       Language.Logic.Test.Term
       Language.Logic.Test.Unify
       Paths_logical
