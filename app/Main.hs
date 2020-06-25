@@ -23,13 +23,13 @@ main = do
         (prelude, op, sym') <- getPrelude sym
         case tokenizeAndParse op sym' fname contents of
           Left err -> print err >> exitFailure
-          Right (clauses, _, _sym'') -> do
+          Right (clauses, _, sym'') -> do
               let clauses' = consolidateClauses clauses
                   body = prelude <> clauses'
               --print clauses'
-              runProgram body >>= \case
+              runProgram sym'' body >>= \case
                 Left err -> print err >> exitFailure
-                Right () -> pure ()
+                Right _ -> pure ()
 
 --print $ runProgram example
 
@@ -52,3 +52,5 @@ example = CodeBody (Map.fromList clauses)
             ("bar", [StdClause (Fact "bar" [TermVar "X"]) [Fact "foo" [TermVar "X"]]]),
             ("main", [StdClause (Fact "main" []) [Fact "bar" [TermVar "X"]]])
            ]
+
+-- ///// SymbolTable interning of term symbols

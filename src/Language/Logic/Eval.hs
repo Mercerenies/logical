@@ -8,7 +8,9 @@ import Language.Logic.Util
 import Language.Logic.Unique
 import Language.Logic.Choice
 import Language.Logic.Error
+import Language.Logic.SymbolTable(SymbolTable())
 import qualified Language.Logic.Eval.Monad as EM
+import qualified Language.Logic.SymbolTable.Monad as SM
 
 import Polysemy
 import Polysemy.Reader
@@ -41,9 +43,7 @@ freshenClause (StdClause concl inner) = do
   return $ StdClause concl' inner'
 freshenClause (PrimClause s p) = pure $ PrimClause s p
 
-matchClause0 :: (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r, Member AssumptionState r,
-                 Member EM.EvalIO r, Member (Error RuntimeError) r) =>
-                Fact -> Clause -> Sem r ()
+matchClause0 :: EvalCtx r => Fact -> Clause -> Sem r ()
 matchClause0 fact (StdClause concl inner) = do
   fact' <- doSubFact fact
   concl' <- doSubFact concl
@@ -57,31 +57,28 @@ matchClause0 fact (PrimClause s p) = do
   nonDetToChoice . guard $ factHead fact' == s
   runEvalEff $ p fact'
 
-matchClause :: (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r, Member AssumptionState r,
-                Member EM.EvalIO r, Member (Error RuntimeError) r) =>
-               Fact -> Clause -> Sem r ()
+matchClause :: EvalCtx r => Fact -> Clause -> Sem r ()
 matchClause fact clause = freshenClause clause >>= matchClause0 fact
 
-evalGoal :: (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r, Member AssumptionState r,
-             Member EM.EvalIO r, Member (Error RuntimeError) r) =>
-            Fact -> Sem r ()
+evalGoal :: EvalCtx r => Fact -> Sem r ()
 evalGoal fact = do
   --traceM $ "GOAL  " ++ show fact
   clauses <- asks (lookupHead $ factHead fact)
   nonDetToChoice $ oneOf (fmap (matchClause fact) clauses)
 
-runProgram :: CodeBody -> IO (Either RuntimeError ())
-runProgram body = evalGoal (Fact "main" []) &
-                  runReader body &
-                  evalAssumptionState &
-                  errorToChoice @UnifyError &
-                  runChoice @[] &
-                  runUniqueInt & -- TODO Swap this with the above
-                                 -- line? Is it safe? It would make
-                                 -- the var numbers less insane.
-                  EM.evalToIO &
-                  runError @RuntimeError &
-                  embedToFinal &
-                  runFinal &
-                  fmap (bimap id (const ()))
+runProgram :: SymbolTable -> CodeBody -> IO (Either RuntimeError SymbolTable)
+runProgram sym body =
+    evalGoal (Fact "main" []) &
+    runReader body &
+    evalAssumptionState &
+    errorToChoice @UnifyError &
+    runChoice @[] &
+    runUniqueInt & -- TODO Swap this with the above line? Is it safe?
+                   -- It would make the var numbers less insane.
+    SM.runSymbolTableState sym &
+    EM.evalToIO &
+    runError @RuntimeError &
+    embedToFinal &
+    runFinal &
+    fmap (second fst)
 

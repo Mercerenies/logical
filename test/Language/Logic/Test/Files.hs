@@ -11,6 +11,7 @@ import Test.HUnit
 
 import Data.Char
 import System.Directory
+import Control.Monad
 
 eitherToIO :: Show e => Either e a -> IO a
 eitherToIO (Left e) = fail (show e)
@@ -25,9 +26,9 @@ runTestFile fpath = TestLabel fpath $ TestCase go
             let sym = emptyTable
             contents <- readFile fpath
             (prelude, op, sym') <- getPrelude sym
-            (clauses, _, _sym'') <- eitherToIO (tokenizeAndParse op sym' fpath contents)
+            (clauses, _, sym'') <- eitherToIO (tokenizeAndParse op sym' fpath contents)
             let body = prelude <> consolidateClauses clauses
-            runProgram body >>= eitherToIO
+            void $ runProgram sym'' body >>= eitherToIO
 
 discoverTestFiles :: FilePath -> IO [FilePath]
 discoverTestFiles fpath =

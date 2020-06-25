@@ -9,6 +9,7 @@ import Language.Logic.Choice
 import Language.Logic.Error
 import qualified Language.Logic.Util as Util
 import qualified Language.Logic.Eval.Monad as EM
+import qualified Language.Logic.SymbolTable.Monad as SM
 
 import Polysemy
 import Polysemy.Reader
@@ -18,7 +19,8 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 
 type EvalCtx r = (Member (Reader CodeBody) r, Member Choice r, Member (Unique Int) r,
-                  Member AssumptionState r, Member EM.EvalIO r, Member (Error RuntimeError) r)
+                  Member AssumptionState r, Member EM.EvalIO r, Member (Error RuntimeError) r,
+                  Member (SM.SymbolTableState SM.SymbolId) r)
 
 data EvalEff a = EvalEff (forall r. EvalCtx r => Sem r a)
 

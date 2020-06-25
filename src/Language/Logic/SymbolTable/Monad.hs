@@ -1,5 +1,5 @@
 
-module Language.Logic.SymbolTable.Monad(SymbolTableState(..), intern,
+module Language.Logic.SymbolTable.Monad(SymbolTableState(..), SymbolId, intern,
                                         runSymbolTableState, evalSymbolTableState,
                                         runSymbolTableStateTrivially) where
 
@@ -32,5 +32,3 @@ toState = reinterpret $ \case
             let (i, table') = SymbolTable.intern t table
             put $! table'
             return i
-
- -- ///// Use this in the parser and evaluator...
