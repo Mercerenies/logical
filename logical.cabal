@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3e7cbb08fb1bc88e769334e36de33730f1ea6e2a00533f87584d2da2cb1b559d
+-- hash: 0e92642202fa11634746ffcdf6c0f4e6249f6a90bb0dd996b4c648f80e44da94
 
 name:           logical
 version:        0.1.0.0
@@ -62,6 +62,7 @@ library
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
     , text >=1.2 && <2
+    , transformers >=0.5 && <1
     , unordered-containers >=0.2 && <1
   default-language: Haskell2010
 
@@ -83,6 +84,7 @@ executable logical-exe
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
     , text >=1.2 && <2
+    , transformers >=0.5 && <1
     , unordered-containers >=0.2 && <1
   default-language: Haskell2010
 
@@ -112,5 +114,6 @@ test-suite logical-test
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
     , text >=1.2 && <2
+    , transformers >=0.5 && <1
     , unordered-containers >=0.2 && <1
   default-language: Haskell2010

@@ -5,6 +5,7 @@ import Language.Logic.Eval
 import Language.Logic.Code
 import Language.Logic.Parser
 import Language.Logic.StdLib
+import Language.Logic.SymbolTable
 
 import Test.HUnit
 
@@ -21,9 +22,10 @@ endsWith whole ext = drop (length whole - length ext) whole == ext
 runTestFile :: FilePath -> Test
 runTestFile fpath = TestLabel fpath $ TestCase go
     where go = do
+            let sym = emptyTable
             contents <- readFile fpath
-            (prelude, op) <- getPrelude
-            (clauses, _) <- eitherToIO (tokenizeAndParse op fpath contents)
+            (prelude, op, sym') <- getPrelude sym
+            (clauses, _, _sym'') <- eitherToIO (tokenizeAndParse op sym' fpath contents)
             let body = prelude <> consolidateClauses clauses
             runProgram body >>= eitherToIO
 

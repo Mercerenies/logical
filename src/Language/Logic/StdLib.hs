@@ -11,6 +11,7 @@ import Language.Logic.Error
 import Language.Logic.Eval
 import Language.Logic.Unify
 import Language.Logic.StdLib.Arithmetic
+import Language.Logic.SymbolTable(SymbolTable())
 import qualified Language.Logic.Eval.Monad as EM
 
 import Polysemy
@@ -165,9 +166,9 @@ stdlib = CodeBody $ Map.fromList [
            ])
          ]
 
-getPrelude :: IO (CodeBody, OpTable)
-getPrelude = do
+getPrelude :: SymbolTable -> IO (CodeBody, OpTable, SymbolTable)
+getPrelude sym = do
   code <- readFile "std/Prelude"
-  case tokenizeAndParse (OpTable mempty) "std/Prelude" code of
+  case tokenizeAndParse (OpTable mempty) sym "std/Prelude" code of
     Left err -> fail (show err)
-    Right (clauses, op) -> return (stdlib <> consolidateClauses clauses, op)
+    Right (clauses, op, sym') -> return (stdlib <> consolidateClauses clauses, op, sym')

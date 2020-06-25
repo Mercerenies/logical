@@ -7,12 +7,13 @@ import Language.Logic.Decl
 import Language.Logic.Parser.Token
 import qualified Language.Logic.Parser.Op as Op
 import Language.Logic.Number(Number(..))
+import Language.Logic.SymbolTable
 
-import Text.Parsec hiding (satisfy)
+import Text.Parsec hiding (satisfy, runParser)
 import Control.Monad
+import Control.Monad.Trans.RWS hiding (ask)
 import Control.Monad.Reader
 import Control.Applicative(liftA2)
-import Data.Function((&))
 import Data.List(foldl')
 import Data.Maybe(mapMaybe)
 import Data.List.NonEmpty(NonEmpty(..))
@@ -29,7 +30,7 @@ import qualified Data.Map as Map
 -- effects using Polysemy, but that would be messy and introduce a ton
 -- of boilerplate, so it's just simpler to use a small mtl-style monad
 -- stack here.
-type Parser = ParsecT [TokenPos] Int (Reader Op.OpTable)
+type Parser = ParsecT [TokenPos] Int (RWS Op.OpTable () SymbolTable)
 
 {-
 currentIndent :: Parser Int
@@ -155,6 +156,12 @@ topLevelClauses = many clauseOrDecl
 handleOpDecls :: Decl -> Op.OpTable -> Op.OpTable
 handleOpDecls (OperatorDecl opa op) (Op.OpTable m) = Op.OpTable (Map.insert opa op m)
 
+runParser :: Parser a -> String -> [TokenPos] -> Op.OpTable -> SymbolTable -> Either ParseError (a, SymbolTable)
+runParser p src toks op sym =
+    let p' = runPT p 0 src toks
+        (res, sym', ()) = runRWS p' op sym in
+    fmap (\r -> (r, sym')) res
+
 -- It's not ideal, but currently we parse the text twice. The first
 -- time, we parse with no operator table (thus, operator expressions
 -- will be parenthesized incorrectly but will still parse), and we
@@ -162,12 +169,14 @@ handleOpDecls (OperatorDecl opa op) (Op.OpTable m) = Op.OpTable (Map.insert opa 
 -- operator table. The second time, we parse with the correct operator
 -- table and discard operator declarations, leaving only clauses
 -- containing correctly parenthesized operator expressions.
-parseText :: Op.OpTable -> String -> [TokenPos] -> Either ParseError ([Clause], Op.OpTable)
-parseText table0 srcname toks = do
-  firstParse <- runPT (topLevelClauses <* eof) 0 srcname toks & flip runReader table0
+parseText :: Op.OpTable -> SymbolTable -> String -> [TokenPos] ->
+             Either ParseError ([Clause], Op.OpTable, SymbolTable)
+parseText table0 sym srcname toks = do
+  (firstParse, sym') <- runParser (topLevelClauses <* eof) srcname toks table0 sym
   let table1 = foldl' (flip handleOpDecls) table0 $ mapMaybe toDecl firstParse
-  secondParse <- runPT (topLevelClauses <* eof) 0 srcname toks & flip runReader table1
-  return (mapMaybe toClause secondParse, table1)
+  (secondParse, sym'') <- runParser (topLevelClauses <* eof) srcname toks table1 sym'
+  return (mapMaybe toClause secondParse, table1, sym'')
 
-tokenizeAndParse :: Op.OpTable -> String -> String -> Either ParseError ([Clause], Op.OpTable)
-tokenizeAndParse op src = readTokens src >=> parseText op src
+tokenizeAndParse :: Op.OpTable -> SymbolTable -> String -> String ->
+                    Either ParseError ([Clause], Op.OpTable, SymbolTable)
+tokenizeAndParse op sym src = readTokens src >=> parseText op sym src
