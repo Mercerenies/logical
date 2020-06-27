@@ -3,10 +3,12 @@
 module Language.Logic.Code where
 
 import Language.Logic.Term
+import Language.Logic.Term.Compiled
 import Language.Logic.Unify(AssumptionState)
 import Language.Logic.Unique
 import Language.Logic.Choice
 import Language.Logic.Error
+import Language.Logic.Tagged
 import qualified Language.Logic.Util as Util
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
@@ -49,10 +51,28 @@ instance Show f => Show (CodeBody f) where
             str = fmap (\cs -> foldr (.) id (fmap (\c -> shows c . ("\n" ++)) cs) . ("\n" ++)) clauses
         in foldr (.) id str
 
+class IsFact f where
+    type FactHead f
+    type FactTerm f
+    factHead :: f -> FactHead f
+    factBody :: f -> [FactTerm f]
+
+instance IsFact Fact where
+    type FactHead Fact = String
+    type FactTerm Fact = Term
+    factHead (Fact h _) = h
+    factBody (Fact _ ts) = ts
+
+instance IsFact CFact where
+    type FactHead CFact = Tagged Atom SM.SymbolId
+    type FactTerm CFact = CTerm
+    factHead (CFact h _) = h
+    factBody (CFact _ ts) = ts
+
 lookupHead :: String -> CodeBody f -> [Clause f]
 lookupHead s (CodeBody m) = maybe [] id $ Map.lookup s m
 
-consolidateClauses :: [Clause Fact] -> CodeBody Fact -- ///// Type family magic this Fact dependency away
+consolidateClauses :: [Clause Fact] -> CodeBody Fact
 consolidateClauses = CodeBody . Util.classify clauseHead
     where clauseHead (StdClause (Fact h _) _) = h
           clauseHead (PrimClause s _) = s

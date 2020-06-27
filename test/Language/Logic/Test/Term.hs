@@ -2,6 +2,7 @@
 module Language.Logic.Test.Term where
 
 import Language.Logic.Term
+import Language.Logic.Code(IsFact(..))
 
 import Test.HUnit
 

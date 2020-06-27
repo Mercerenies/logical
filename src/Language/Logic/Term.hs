@@ -1,6 +1,5 @@
 
 module Language.Logic.Term(Term(..), Fact(..), Atom(..),
-                           factHead, factBody,
                            freeVars, freeVarsInFact, safeVar,
                            renameVars, renameInFact) where
 
@@ -45,12 +44,6 @@ showsAtomic s =
         (s ++)
     else
         ("`" ++) . (s ++) . ("`" ++)
-
-factHead :: Fact -> String
-factHead (Fact s _) = s
-
-factBody :: Fact -> [Term]
-factBody (Fact _ t) = t
 
 freeVars :: Term -> [String]
 freeVars (TermVar s) = [s]
