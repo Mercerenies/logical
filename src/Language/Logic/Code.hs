@@ -20,7 +20,7 @@ import Polysemy.Error
 import Data.Map(Map)
 import qualified Data.Map as Map
 
-type EvalCtx r = (Member (Reader (CodeBody Fact)) r, Member Choice r, Member (Unique Int) r,
+type EvalCtx r = (Member (Reader (CodeBody String Fact)) r, Member Choice r, Member (Unique Int) r,
                   Member AssumptionState r, Member EM.EvalIO r, Member (Error RuntimeError) r,
                   Member (SM.SymbolTableState SM.SymbolId) r)
 
@@ -32,12 +32,12 @@ data Clause f = StdClause f [f]
 -- It would be slightly more efficient to index the map by both name
 -- and arity (as opposed to just name), but that's probably
 -- insignificant.
-data CodeBody f = CodeBody (Map String [Clause f])
+data CodeBody k f = CodeBody (Map k [Clause f])
 
-instance Semigroup (CodeBody f) where
+instance Ord k => Semigroup (CodeBody k f) where
     CodeBody a <> CodeBody b = CodeBody $ Map.unionWith (++) a b
 
-instance Monoid (CodeBody f) where
+instance Ord k => Monoid (CodeBody k f) where
     mempty = CodeBody mempty
 
 instance Show f => Show (Clause f) where
@@ -45,7 +45,7 @@ instance Show f => Show (Clause f) where
     showsPrec _ (StdClause h ts) = shows h . (": " ++) . Util.sepBy (" " ++) (fmap shows ts)
     showsPrec _ (PrimClause s _) = (s ++) . (": (primitive)" ++)
 
-instance Show f => Show (CodeBody f) where
+instance (Ord k, Show f) => Show (CodeBody k f) where
     showsPrec _ (CodeBody m) =
         let clauses = map snd $ Map.toAscList m
             str = fmap (\cs -> foldr (.) id (fmap (\c -> shows c . ("\n" ++)) cs) . ("\n" ++)) clauses
@@ -69,10 +69,10 @@ instance IsFact CFact where
     factHead (CFact h _) = h
     factBody (CFact _ ts) = ts
 
-lookupHead :: String -> CodeBody f -> [Clause f]
+lookupHead :: Ord k => k -> CodeBody k f -> [Clause f]
 lookupHead s (CodeBody m) = maybe [] id $ Map.lookup s m
 
-consolidateClauses :: [Clause Fact] -> CodeBody Fact
+consolidateClauses :: [Clause Fact] -> CodeBody String Fact
 consolidateClauses = CodeBody . Util.classify clauseHead
     where clauseHead (StdClause (Fact h _) _) = h
           clauseHead (PrimClause s _) = s
