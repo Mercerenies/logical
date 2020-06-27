@@ -72,9 +72,9 @@ instance IsFact CFact where
 lookupHead :: Ord k => k -> CodeBody k f -> [Clause k f]
 lookupHead s (CodeBody m) = maybe [] id $ Map.lookup s m
 
-consolidateClauses :: [Clause String Fact] -> CodeBody String Fact
+consolidateClauses :: (IsFact f, Ord (FactHead f)) => [Clause (FactHead f) f] -> CodeBody (FactHead f) f
 consolidateClauses = CodeBody . Util.classify clauseHead
-    where clauseHead (StdClause (Fact h _) _) = h
+    where clauseHead (StdClause f _) = factHead f
           clauseHead (PrimClause s _) = s
 
 runEvalEff :: EvalCtx r => EvalEff a -> Sem r a
