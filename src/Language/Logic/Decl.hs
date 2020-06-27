@@ -2,11 +2,12 @@
 module Language.Logic.Decl where
 
 import Language.Logic.Code
+import Language.Logic.Term(Fact)
 import qualified Language.Logic.Parser.Op as Op
 
 data Decl = OperatorDecl Op.OpA Op.Op
 
-data ClauseOrDecl = Clause Clause | Decl Decl
+data ClauseOrDecl = Clause (Clause Fact) | Decl Decl
 
 instance Show Decl where
     showsPrec _ (OperatorDecl (Op.OpA fx name) (Op.Op pr as)) =
@@ -24,7 +25,7 @@ instance Show ClauseOrDecl where
     showsPrec n (Clause c) = showsPrec n c
     showsPrec n (Decl d) = showsPrec n d
 
-toClause :: ClauseOrDecl -> Maybe Clause
+toClause :: ClauseOrDecl -> Maybe (Clause Fact)
 toClause (Clause c) = Just c
 toClause (Decl _) = Nothing
 

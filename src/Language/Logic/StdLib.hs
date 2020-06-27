@@ -135,7 +135,7 @@ if_ = arg3 >=> \(c, t, f) -> do
         res <- once $ (True <$ evalGoal c') <|> pure False
         if res then evalGoal t' else evalGoal f'
 
-stdlib :: CodeBody
+stdlib :: CodeBody Fact
 stdlib = CodeBody $ Map.fromList [
           ("write_term", [
             PrimClause "write_term" (builtinToPrim writeTerm)
@@ -166,7 +166,7 @@ stdlib = CodeBody $ Map.fromList [
            ])
          ]
 
-getPrelude :: SymbolTable -> IO (CodeBody, OpTable, SymbolTable)
+getPrelude :: SymbolTable -> IO (CodeBody Fact, OpTable, SymbolTable)
 getPrelude sym = do
   code <- readFile "std/Prelude"
   case tokenizeAndParse (OpTable mempty) sym "std/Prelude" code of

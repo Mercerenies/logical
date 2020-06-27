@@ -86,10 +86,10 @@ block = do
   _ <- special CloseBrace
   return ("block", terms)
 
-clause :: Parser Clause
+clause :: Parser (Clause Fact)
 clause = simpleClause <|> condClause
 
-simpleClause :: Parser Clause
+simpleClause :: Parser (Clause Fact)
 simpleClause = fmap (\fct -> StdClause fct []) $ try (fact <* special Dot)
 
 {-
@@ -111,7 +111,7 @@ determineTargetIndent curr next =
 
 -- TODO Consider desugaring blocks when parsed as inner here to simply
 -- be a list of facts.
-condClause :: Parser Clause
+condClause :: Parser (Clause Fact)
 condClause = do
   fct <- try (fact <* special Colon)
   inner <- fact
@@ -170,7 +170,7 @@ runParser p src toks op sym =
 -- table and discard operator declarations, leaving only clauses
 -- containing correctly parenthesized operator expressions.
 parseText :: Op.OpTable -> SymbolTable -> String -> [TokenPos] ->
-             Either ParseError ([Clause], Op.OpTable, SymbolTable)
+             Either ParseError ([Clause Fact], Op.OpTable, SymbolTable)
 parseText table0 sym srcname toks = do
   (firstParse, sym') <- runParser (topLevelClauses <* eof) srcname toks table0 sym
   let table1 = foldl' (flip handleOpDecls) table0 $ mapMaybe toDecl firstParse
@@ -178,5 +178,5 @@ parseText table0 sym srcname toks = do
   return (mapMaybe toClause secondParse, table1, sym'')
 
 tokenizeAndParse :: Op.OpTable -> SymbolTable -> String -> String ->
-                    Either ParseError ([Clause], Op.OpTable, SymbolTable)
+                    Either ParseError ([Clause Fact], Op.OpTable, SymbolTable)
 tokenizeAndParse op sym src = readTokens src >=> parseText op sym src

@@ -43,7 +43,7 @@ bar(X) :- foo(X).
 main() :- bar(X).
 -}
 
-example :: CodeBody
+example :: CodeBody Fact
 example = CodeBody (Map.fromList clauses)
     where clauses = [
             ("foo", [StdClause (Fact "foo" [TermNum 1]) [],
