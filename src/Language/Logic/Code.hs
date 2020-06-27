@@ -26,13 +26,13 @@ type EvalCtx r = (Member (Reader (CodeBody String Fact)) r, Member Choice r, Mem
 
 data EvalEff a = EvalEff (forall r. EvalCtx r => Sem r a)
 
-data Clause f = StdClause f [f]
-              | PrimClause String (f -> EvalEff ())
+data Clause k f = StdClause f [f]
+                | PrimClause k (f -> EvalEff ())
 
 -- It would be slightly more efficient to index the map by both name
 -- and arity (as opposed to just name), but that's probably
 -- insignificant.
-data CodeBody k f = CodeBody (Map k [Clause f])
+data CodeBody k f = CodeBody (Map k [Clause k f])
 
 instance Ord k => Semigroup (CodeBody k f) where
     CodeBody a <> CodeBody b = CodeBody $ Map.unionWith (++) a b
@@ -40,12 +40,12 @@ instance Ord k => Semigroup (CodeBody k f) where
 instance Ord k => Monoid (CodeBody k f) where
     mempty = CodeBody mempty
 
-instance Show f => Show (Clause f) where
+instance (Show k, Show f) => Show (Clause k f) where
     showsPrec _ (StdClause h []) = shows h . ("." ++)
     showsPrec _ (StdClause h ts) = shows h . (": " ++) . Util.sepBy (" " ++) (fmap shows ts)
-    showsPrec _ (PrimClause s _) = (s ++) . (": (primitive)" ++)
+    showsPrec _ (PrimClause s _) = shows s . (": (primitive)" ++)
 
-instance (Ord k, Show f) => Show (CodeBody k f) where
+instance (Ord k, Show k, Show f) => Show (CodeBody k f) where
     showsPrec _ (CodeBody m) =
         let clauses = map snd $ Map.toAscList m
             str = fmap (\cs -> foldr (.) id (fmap (\c -> shows c . ("\n" ++)) cs) . ("\n" ++)) clauses
@@ -69,10 +69,10 @@ instance IsFact CFact where
     factHead (CFact h _) = h
     factBody (CFact _ ts) = ts
 
-lookupHead :: Ord k => k -> CodeBody k f -> [Clause f]
+lookupHead :: Ord k => k -> CodeBody k f -> [Clause k f]
 lookupHead s (CodeBody m) = maybe [] id $ Map.lookup s m
 
-consolidateClauses :: [Clause Fact] -> CodeBody String Fact
+consolidateClauses :: [Clause String Fact] -> CodeBody String Fact
 consolidateClauses = CodeBody . Util.classify clauseHead
     where clauseHead (StdClause (Fact h _) _) = h
           clauseHead (PrimClause s _) = s

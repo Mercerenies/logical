@@ -33,7 +33,7 @@ errorToChoice = nonDetToChoice . errorToNonDet . raiseUnder
 freshVar :: Member (Unique Int) r => Sem r String
 freshVar = uniques (\n -> "_G" ++ show n)
 
-freshenClause :: Member (Unique Int) r => Clause Fact -> Sem r (Clause Fact)
+freshenClause :: Member (Unique Int) r => Clause String Fact -> Sem r (Clause String Fact)
 freshenClause (StdClause concl inner) = do
   let vars = freeVarsInFact concl ++ concatMap freeVarsInFact inner
   freshVars <- replicateM (length vars) freshVar
@@ -43,7 +43,7 @@ freshenClause (StdClause concl inner) = do
   return $ StdClause concl' inner'
 freshenClause (PrimClause s p) = pure $ PrimClause s p
 
-matchClause0 :: EvalCtx r => Fact -> Clause Fact -> Sem r ()
+matchClause0 :: EvalCtx r => Fact -> Clause String Fact -> Sem r ()
 matchClause0 fact (StdClause concl inner) = do
   fact' <- doSubFact fact
   concl' <- doSubFact concl
@@ -57,7 +57,7 @@ matchClause0 fact (PrimClause s p) = do
   nonDetToChoice . guard $ factHead fact' == s
   runEvalEff $ p fact'
 
-matchClause :: EvalCtx r => Fact -> Clause Fact -> Sem r ()
+matchClause :: EvalCtx r => Fact -> Clause String Fact -> Sem r ()
 matchClause fact clause = freshenClause clause >>= matchClause0 fact
 
 evalGoal :: EvalCtx r => Fact -> Sem r ()
