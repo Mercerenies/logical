@@ -1,5 +1,5 @@
 
-module Language.Logic.Term(Term(..), Fact(..),
+module Language.Logic.Term(Term(..), Fact(..), Atom(..),
                            factHead, factBody,
                            freeVars, freeVarsInFact, safeVar,
                            renameVars, renameInFact) where
@@ -14,17 +14,23 @@ data Term = TermVar String
           | TermCompound String [Term]
             deriving (Eq, Ord)
 
+data Fact = Fact String [Term]
+            deriving (Eq, Ord)
+
+newtype Atom = Atom String
+    deriving (Eq, Ord)
+
 instance Show Term where
     showsPrec _ (TermVar v) = (v ++)
     showsPrec _ (TermNum n) = shows n
     showsPrec _ (TermCompound s args) = showsAtomic s . ("(" ++) . args' . (")" ++)
         where args' = Util.sepBy ("," ++) $ fmap shows args
 
-data Fact = Fact String [Term]
-            deriving (Eq, Ord)
-
 instance Show Fact where
     showsPrec n (Fact s args) = showsPrec n (TermCompound s args)
+
+instance Show Atom where
+    showsPrec _ (Atom s) = showsAtomic s
 
 isStdAtom :: String -> Bool
 isStdAtom [] = False
