@@ -11,7 +11,6 @@ import Test.HUnit
 
 import Data.Char
 import System.Directory
-import Control.Monad
 
 eitherToIO :: Show e => Either e a -> IO a
 eitherToIO (Left e) = fail (show e)
@@ -28,7 +27,8 @@ runTestFile fpath = TestLabel fpath $ TestCase go
             (prelude, op, sym') <- getPrelude sym
             (clauses, _, sym'') <- eitherToIO (tokenizeAndParse op sym' fpath contents)
             let body = prelude <> consolidateClauses clauses
-            void $ runProgram sym'' body >>= eitherToIO
+            (_, results) <- runProgram sym'' body >>= eitherToIO
+            assertBool ("Test file " ++ fpath) $ (results > 0)
 
 discoverTestFiles :: FilePath -> IO [FilePath]
 discoverTestFiles fpath =

@@ -81,7 +81,7 @@ evalGoal fact = do
   clauses <- asks (lookupHead $ factHead fact)
   nonDetToChoice $ oneOf (fmap (matchClause fact) clauses)
 
-runProgram :: SymbolTable -> CodeBody String Fact -> IO (Either RuntimeError SymbolTable)
+runProgram :: SymbolTable -> CodeBody String Fact -> IO (Either RuntimeError (SymbolTable, Int))
 runProgram sym body =
     evalGoal (Fact "main" []) &
     runReader body &
@@ -95,5 +95,5 @@ runProgram sym body =
     runError @RuntimeError &
     embedToFinal &
     runFinal &
-    fmap (second fst)
+    fmap (second (second length))
 
