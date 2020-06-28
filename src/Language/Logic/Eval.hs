@@ -3,14 +3,17 @@ module Language.Logic.Eval where
 
 import Language.Logic.Code
 import Language.Logic.Term
+import Language.Logic.Term.Compiled
 import Language.Logic.Unify
 import Language.Logic.Util
 import Language.Logic.Unique
 import Language.Logic.Choice
 import Language.Logic.Error
+import Language.Logic.Tagged
 import Language.Logic.SymbolTable(SymbolTable())
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
+import qualified Language.Logic.Unify.Compiled as UC
 
 import Polysemy
 import Polysemy.Reader
@@ -23,6 +26,8 @@ import Data.Bifunctor
 import qualified Data.Map as Map
 
 --import Debug.Trace
+
+type CClause = Clause (Tagged Atom SM.SymbolId) CFact
 
 errorToNonDet :: forall e a r. Member NonDet r => Sem (Error e ': r) a -> Sem r a
 errorToNonDet m = runError m >>= either (const mzero) pure
@@ -42,6 +47,16 @@ freshenClause (StdClause concl inner) = do
       inner' = fmap (subOnceInFact asm) inner
   return $ StdClause concl' inner'
 freshenClause (PrimClause s p) = pure $ PrimClause s p
+
+freshenClauseC :: Member (Unique Int) r => CClause -> Sem r CClause
+freshenClauseC (StdClause concl inner) = do
+  let vars = freeVarsInCFact concl ++ concatMap freeVarsInCFact inner
+  freshVars <- replicateM (length vars) freshVar
+  let asm = UC.Assumptions $ Map.fromList (zip vars $ fmap CTermVar freshVars)
+      concl' = UC.subOnceInFact asm concl
+      inner' = fmap (UC.subOnceInFact asm) inner
+  return $ StdClause concl' inner'
+freshenClauseC (PrimClause s p) = pure $ PrimClause s p
 
 matchClause0 :: EvalCtx r => Fact -> Clause String Fact -> Sem r ()
 matchClause0 fact (StdClause concl inner) = do
