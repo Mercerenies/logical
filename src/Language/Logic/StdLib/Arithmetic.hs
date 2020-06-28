@@ -1,17 +1,22 @@
 
-module Language.Logic.StdLib.Arithmetic(arithFunctions, evalArithWith, evalArith) where
+module Language.Logic.StdLib.Arithmetic(arithFunctions, evalArithWith, evalArith, compileArith) where
 
 import Language.Logic.Term
 import Language.Logic.Number(Number(..))
 import Language.Logic.Error
+import Language.Logic.SymbolTable.Monad
+import qualified Language.Logic.Util as Util
 
 import Polysemy
 import Polysemy.Error
+import qualified Data.Text as T
 
 import Data.Map(Map)
 import qualified Data.Map as Map
 
 type ArithFns = Map String ([Number] -> Either RuntimeError Number)
+
+type ArithFnsC = Map SymbolId ([Number] -> Either RuntimeError Number)
 
 throwArith :: String -> Either RuntimeError a
 throwArith = Left . ArithmeticError
@@ -62,3 +67,6 @@ evalArithWith fns (TermCompound h ts) =
 
 evalArith :: Member (Error RuntimeError) r => Term -> Sem r Number
 evalArith = evalArithWith arithFunctions
+
+compileArith :: Member (SymbolTableState SymbolId) r => ArithFns -> Sem r ArithFnsC
+compileArith = Util.traverseKeys (intern . T.pack)

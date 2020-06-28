@@ -1,5 +1,5 @@
 
-module Language.Logic.Util(sepBy, oneOf, classify) where
+module Language.Logic.Util(sepBy, oneOf, classify, traverseKeys) where
 
 import Control.Applicative
 import Data.List(foldl')
@@ -19,3 +19,7 @@ classify f = fmap reverse . foldl' go Map.empty
     where go m x = Map.alter (alt x) (f x) m
           alt x Nothing = Just [x]
           alt x (Just xs) = Just (x:xs)
+
+traverseKeys :: (Applicative t, Ord k2) => (k1 -> t k2) -> Map k1 a -> t (Map k2 a)
+traverseKeys f = fmap Map.fromList . traverse go . Map.toList
+    where go (k, v) = liftA2 (,) (f k) (pure v)

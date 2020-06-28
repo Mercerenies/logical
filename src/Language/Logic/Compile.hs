@@ -17,3 +17,8 @@ compileClause :: Member (SymbolTableState SymbolId) r =>
                  Clause String Fact -> Sem r (Clause (Tagged Atom SymbolId) CFact)
 compileClause (StdClause f fs) = StdClause <$> compileFact f <*> mapM compileFact fs
 compileClause (PrimClause k g) = PrimClause <$> internTag k <*> pure (g . cfactToFact)
+
+compileClause' :: Member (SymbolTableState SymbolId) r =>
+                  Clause String CFact -> Sem r (Clause (Tagged Atom SymbolId) CFact)
+compileClause' (StdClause f fs) = pure (StdClause f fs)
+compileClause' (PrimClause k g) = PrimClause <$> internTag k <*> pure g
