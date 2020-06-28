@@ -2,9 +2,11 @@
 module Language.Logic.Unify(Assumptions(..), AssumptionState(..), tellAssumption, getAssumptions,
                             UnifyError(..), runAssumptionState, evalAssumptionState,
                             assumption, assume,
-                            subOnce, subOnceInFact, doSub, doSubFact, subAndUnify, fullUnify) where
+                            subOnce, subOnceInFact,
+                            doSub, doSubFact, subAndUnify, fullUnify) where
 
 import Language.Logic.Term
+--import Language.Logic.Term.Compiled
 
 import Polysemy
 import Polysemy.State

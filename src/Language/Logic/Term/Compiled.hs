@@ -42,3 +42,11 @@ compileFact :: Member (SymbolTableState SymbolId) r => Fact -> Sem r CFact
 compileFact (Fact h ts) = CFact <$> h' <*> ts'
     where h' = Tagged (Atom h) <$> intern (T.pack h)
           ts' = mapM compileTerm ts
+
+freeVarsC :: CTerm -> [String]
+freeVarsC (CTermVar s) = [s]
+freeVarsC (CTermNum {}) = []
+freeVarsC (CTermCompound _ ts) = concatMap freeVarsC ts
+
+freeVarsInCFact :: CFact -> [String]
+freeVarsInCFact (CFact _ xs) = concatMap freeVarsC xs
