@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 71434e9954a5c462b3ac145489cfeb2e592a159057c98036b448d628a4eeb082
+-- hash: 73649905ce73e990ac7ec06dd4a09d071ed17b5c57c14fe24ddf2784c6e79ba0
 
 name:           logical
 version:        0.1.0.0
@@ -47,6 +47,7 @@ library
       Language.Logic.Term
       Language.Logic.Term.Compiled
       Language.Logic.Unify
+      Language.Logic.Unify.Compiled
       Language.Logic.Unique
       Language.Logic.Util
   other-modules:
