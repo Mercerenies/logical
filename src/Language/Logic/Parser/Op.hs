@@ -65,13 +65,14 @@ resolvePrec table (TermComp {..}) (x0 :| xs0) = verifySeq (x0 :| xs0) >> go Pref
                   Op pr  as  = getPrec op  table
                   Op pr' _   = getPrec op' table in
               case pr' `compare` pr of
+                _ | fx == Prefix -> go Prefix out (op : op' : ops) xs -- Always push prefixes
                 GT -> popOp fx out op' ops (OpTerm nxt : xs)
                 EQ | as == AssocLeft -> popOp fx out op' ops (OpTerm nxt : xs)
                 _ -> go Prefix out (op : op' : ops) xs
           popOp :: Fixity -> [a] -> OpA -> [OpA] -> [OpTerm a] -> Either OpError a
           popOp fx (arg2:arg1:out) (OpA Infix op) ops xs = go fx (termInfix arg1 op arg2 : out) ops xs
           popOp fx (arg1:out) (OpA Prefix op) ops xs = go fx (termPrefix op arg1 : out) ops xs
-          popOp _ _ (OpA _ op) _ _ = Left (OpError $ "Not enough arguments to operator " ++ op)
+          popOp _ _ (OpA p op) _ _ = Left (OpError $ "Not enough arguments to operator " ++ op ++ " (" ++ show p ++ ")")
 
 -- This is run at the beginning of resolvePrec and verifies certain
 -- invariants about the sequence of operators provided.

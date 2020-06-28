@@ -8,5 +8,6 @@ notme(2).
 
 main: {
   once(num(N) && not(notme(N)));
+  write_term(N);
   N = 3;
 }.

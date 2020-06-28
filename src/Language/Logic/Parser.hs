@@ -16,7 +16,7 @@ import Control.Monad.Reader
 import Control.Applicative(liftA2)
 import Data.List(foldl')
 import Data.Maybe(mapMaybe)
-import Data.List.NonEmpty(NonEmpty(..))
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 
 -- Note: The parser state is an Int representing the current
@@ -66,11 +66,12 @@ term = TermVar <$> var <|>
 
 term' :: Parser Term
 term' = do
-  firstterm <- Op.Term <$> term
+  firstterms <- liftA2 (\xs y -> fmap Op.OpTerm xs ++ [Op.Term y]) (many operator) term
   restterms <- concat <$> many (liftA2 (\xs y -> fmap Op.OpTerm xs ++ [Op.Term y]) (many1 operator) term)
   optable <- ask
   let comp = Op.TermComp (\a s b -> TermCompound s [a, b]) (\s a -> TermCompound s [a])
-      result = Op.resolvePrec optable comp (firstterm :| restterms)
+      terms = NonEmpty.fromList $ firstterms ++ restterms -- firstterms must be nonempty so this is safe
+      result = Op.resolvePrec optable comp terms
   either (fail . show) pure result
 
 fact :: Parser Fact
