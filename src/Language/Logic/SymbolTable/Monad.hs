@@ -20,10 +20,10 @@ runSymbolTableStateTrivially = interpret $ \case
                                Intern s -> pure s
 
 runSymbolTableState :: SymbolTable -> Sem (SymbolTableState SymbolId ': r) a -> Sem r (SymbolTable, a)
-runSymbolTableState table0 = runState table0 . toState
+runSymbolTableState table0 = runLazyState table0 . toState
 
 evalSymbolTableState :: SymbolTable -> Sem (SymbolTableState SymbolId ': r) a -> Sem r a
-evalSymbolTableState table0 = evalState table0 . toState
+evalSymbolTableState table0 = evalLazyState table0 . toState
 
 toState :: Sem (SymbolTableState SymbolId ': r) a -> Sem (State SymbolTable ': r) a
 toState = reinterpret $ \case

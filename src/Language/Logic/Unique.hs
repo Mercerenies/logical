@@ -15,7 +15,7 @@ uniques :: MemberWithError (Unique i) r => (i -> i') -> Sem r i'
 uniques f = f <$> unique
 
 runUnique :: i -> (i -> i) -> Sem (Unique i ': r) a -> Sem r a
-runUnique x0 next = reinterpret (\Unique -> get >>= \x -> (put $! next x) >> pure x) >>> evalState x0
+runUnique x0 next = reinterpret (\Unique -> get >>= \x -> (put $! next x) >> pure x) >>> evalLazyState x0
 
 runUniqueInt :: Integral i => Sem (Unique i ': r) a -> Sem r a
 runUniqueInt = runUnique 0 succ

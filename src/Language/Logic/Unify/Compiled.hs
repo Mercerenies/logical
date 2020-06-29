@@ -39,7 +39,7 @@ noUnify a b = U.NoUnify (ctermToTerm a) (ctermToTerm b)
 
 runAssumptionState :: Member (Error U.UnifyError) r => Sem (AssumptionState ': r) a -> Sem r (Assumptions, a)
 runAssumptionState =
-    runState mempty .
+    runLazyState mempty .
     reinterpret (\case
       TellAssumption asm -> modify' (<> asm) >> get >>= occursCheck
       GetAssumptions -> get)
