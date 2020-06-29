@@ -12,7 +12,7 @@ import Language.Logic.Choice
 import Language.Logic.Error
 import Language.Logic.Eval
 import Language.Logic.Tagged
---import Language.Logic.Unify.Compiled
+import Language.Logic.Unify.Compiled
 --import Language.Logic.StdLib.Arithmetic
 import Language.Logic.SymbolTable(SymbolTable())
 import Language.Logic.SymbolTable.Monad
@@ -74,7 +74,6 @@ call = argsForCall >=> evalGoal
 block :: EvalCtx' r => CFact -> Sem r ()
 block (CFact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
 
-{-
 -- add takes three arguments. At least two must be ground. If all
 -- three are ground, it verifies that the first two sum to the third.
 -- If exactly one is a variable, it completes the arithmetic
@@ -119,6 +118,7 @@ mul = arg3 >=> \case
           invalid _ = True
           varOf (CTermVar v) = [v]
           varOf _ = []
+{-
 
 arithEval :: EvalCtx' r => CFact -> Sem r ()
 arithEval = arg2 >=> \(x, t) -> evalArith t >>= errorToChoice . void . subAndUnify x . CTermNum
@@ -166,13 +166,13 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("block", [
             PrimClause "block" (builtinToPrim block)
-           ]){-,
+           ]),
           ("add", [
             PrimClause "add" (builtinToPrim add)
            ]),
           ("mul", [
             PrimClause "mul" (builtinToPrim mul)
-           ])-} -- ////
+           ])
          ]
 
 compileLib :: Member (SymbolTableState SymbolId) r =>
