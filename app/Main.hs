@@ -25,14 +25,15 @@ main = do
         let sym = emptyTable
         contents <- readFile fname
         (prelude, op, sym') <- getPrelude sym
-        case tokenizeAndParse op sym' fname contents of
+        let (vm, sym'') = getVMData sym'
+        case tokenizeAndParse op sym'' fname contents of
           Left err -> print err >> exitFailure
-          Right (clauses, _, sym'') -> do
+          Right (clauses, _, sym''') -> do
               let clauses' = consolidateClauses clauses
-                  (sym''', clauses'') = run $ runSymbolTableState sym'' (compileBody clauses')
+                  (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
                   body = prelude <> clauses''
               --print clauses'
-              runProgram sym''' body >>= \case
+              runProgram vm sym'''' body >>= \case
                 Left err -> print err >> exitFailure
                 Right _ -> pure ()
 

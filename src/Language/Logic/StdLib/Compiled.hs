@@ -1,6 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 
-module Language.Logic.StdLib.Compiled(stdlib, getPrelude) where
+module Language.Logic.StdLib.Compiled(stdlib, getPrelude, getVMData) where
 
 import Language.Logic.Code
 import Language.Logic.Compile
@@ -13,7 +13,8 @@ import Language.Logic.Error
 import Language.Logic.Eval
 import Language.Logic.Tagged
 import Language.Logic.Unify.Compiled
---import Language.Logic.StdLib.Arithmetic
+import Language.Logic.StdLib.Arithmetic
+import Language.Logic.VMData
 import Language.Logic.SymbolTable(SymbolTable())
 import Language.Logic.SymbolTable.Monad
 import qualified Language.Logic.Eval.Monad as EM
@@ -27,6 +28,7 @@ import Control.Monad
 import Control.Applicative
 --import Data.Map(Map)
 import qualified Data.Map as Map
+import Data.Tuple(swap)
 
 type EvalCtx' r = (EvalCtx r, Member NonDet r)
 
@@ -189,3 +191,9 @@ getPrelude sym = do
         let (sym'', stdlib') = run $ runSymbolTableState sym' (compileLib stdlib)
             (sym''', clauses') = run $ runSymbolTableState sym'' (mapM compileClause clauses) in
         return (stdlib' <> consolidateClauses clauses', op, sym''')
+
+getVMData :: SymbolTable -> (VMData, SymbolTable)
+getVMData sym = swap . run . runSymbolTableState sym $ compile
+    where compile = do
+            arith <- compileArith arithFunctions
+            return (VMData arith)

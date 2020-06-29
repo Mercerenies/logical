@@ -5,6 +5,7 @@ import Language.Logic.Code
 import Language.Logic.Term
 import Language.Logic.Term.Compiled
 import Language.Logic.Unify
+import Language.Logic.VMData
 import Language.Logic.Util
 import Language.Logic.Unique
 import Language.Logic.Choice
@@ -85,10 +86,12 @@ evalGoal fact = do
 getMainGoal :: EvalCtx r => Sem r CFact
 getMainGoal = internTag "main" >>= \main -> pure $ CFact main []
 
-runProgram :: SymbolTable -> CodeBody (Tagged Atom SM.SymbolId) CFact -> IO (Either RuntimeError (SymbolTable, Int))
-runProgram sym body =
+runProgram :: VMData -> SymbolTable -> CodeBody (Tagged Atom SM.SymbolId) CFact ->
+              IO (Either RuntimeError (SymbolTable, Int))
+runProgram vm sym body =
     (getMainGoal >>= evalGoal) &
     runReader body &
+    runVMEnv vm &
     UC.evalAssumptionState &
     errorToChoice @UnifyError &
     runChoice @[] &

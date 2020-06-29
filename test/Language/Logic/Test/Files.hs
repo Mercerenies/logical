@@ -28,11 +28,12 @@ runTestFile fpath = TestLabel fpath $ TestCase go
             let sym = emptyTable
             contents <- readFile fpath
             (prelude, op, sym') <- getPrelude sym
-            (clauses, _, sym'') <- eitherToIO (tokenizeAndParse op sym' fpath contents)
+            let (vm, sym'') = getVMData sym'
+            (clauses, _, sym''') <- eitherToIO (tokenizeAndParse op sym'' fpath contents)
             let clauses' = consolidateClauses clauses
-                (sym''', clauses'') = run $ runSymbolTableState sym'' (compileBody clauses')
+                (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
                 body = prelude <> clauses''
-            (_, results) <- runProgram sym''' body >>= eitherToIO
+            (_, results) <- runProgram vm sym'''' body >>= eitherToIO
             assertBool ("Test file " ++ fpath) $ (results > 0)
 
 discoverTestFiles :: FilePath -> IO [FilePath]

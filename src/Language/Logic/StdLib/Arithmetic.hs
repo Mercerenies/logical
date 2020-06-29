@@ -1,5 +1,6 @@
 
-module Language.Logic.StdLib.Arithmetic(arithFunctions, evalArithWith, evalArith, compileArith) where
+module Language.Logic.StdLib.Arithmetic(ArithFns, ArithFnsC,
+                                        arithFunctions, evalArithWith, evalArith, compileArith) where
 
 import Language.Logic.Term
 import Language.Logic.Number(Number(..))

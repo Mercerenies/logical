@@ -8,6 +8,7 @@ import Language.Logic.Unique
 import Language.Logic.Choice
 import Language.Logic.Error
 import Language.Logic.Tagged
+import Language.Logic.VMData
 import qualified Language.Logic.Util as Util
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
@@ -21,7 +22,7 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 
 type EvalCtx r = (Member (Reader (CodeBody (Tagged Atom SM.SymbolId) CFact)) r, Member Choice r,
-                  Member (Unique Int) r,
+                  Member (Unique Int) r, Member VMEnv r,
                   Member UC.AssumptionState r, Member EM.EvalIO r, Member (Error RuntimeError) r,
                   Member (SM.SymbolTableState SM.SymbolId) r)
 

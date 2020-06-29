@@ -1,8 +1,11 @@
 {-# LANGUAGE ConstraintKinds #-}
 
-module Language.Logic.StdLib(stdlib, getPrelude) where
+module Language.Logic.StdLib(stdlib, getPrelude, getVMData) where
 
 import Language.Logic.StdLib.Compiled
+
+-- TODO Move Language.Logic.StdLib.Compiled here and get rid of that file.
+
 {-
 
 import Language.Logic.Code
