@@ -1,8 +1,11 @@
 
 module Language.Logic.StdLib.Arithmetic(ArithFns, ArithFnsC,
-                                        arithFunctions, evalArithWith, evalArith, compileArith) where
+                                        arithFunctions, evalArithWith, evalArith, evalArithCWith,
+                                        compileArith) where
 
 import Language.Logic.Term
+import Language.Logic.Term.Compiled
+import Language.Logic.Tagged
 import Language.Logic.Number(Number(..))
 import Language.Logic.Error
 import Language.Logic.SymbolTable.Monad
@@ -68,6 +71,14 @@ evalArithWith fns (TermCompound h ts) =
 
 evalArith :: Member (Error RuntimeError) r => Term -> Sem r Number
 evalArith = evalArithWith arithFunctions
+
+evalArithCWith :: Member (Error RuntimeError) r => ArithFnsC -> CTerm -> Sem r Number
+evalArithCWith _ (CTermNum n) = pure n
+evalArithCWith _ (CTermVar s) = throw (VarsNotDone [s])
+evalArithCWith fns (CTermCompound (Tagged hname h) ts) =
+    case Map.lookup h fns of
+      Nothing -> throw $ ArithmeticError $ "No such function " ++ show hname
+      Just f -> mapM (evalArithCWith fns) ts >>= fromEither . f
 
 compileArith :: Member (SymbolTableState SymbolId) r => ArithFns -> Sem r ArithFnsC
 compileArith = Util.traverseKeys (intern . T.pack)

@@ -9,6 +9,7 @@ import Language.Logic.Term.Compiled
 import Language.Logic.Parser
 import Language.Logic.Parser.Op(OpTable(..))
 import Language.Logic.Choice
+import Language.Logic.Number(Number())
 import Language.Logic.Error
 import Language.Logic.Eval
 import Language.Logic.Tagged
@@ -40,9 +41,9 @@ arg1 :: EvalCtx' r => CFact -> Sem r CTerm
 arg1 (CFact _ [x]) = pure x
 arg1 _ = mzero
 
-_arg2 :: EvalCtx' r => CFact -> Sem r (CTerm, CTerm)
-_arg2 (CFact _ [x, y]) = pure (x, y)
-_arg2 _ = mzero
+arg2 :: EvalCtx' r => CFact -> Sem r (CTerm, CTerm)
+arg2 (CFact _ [x, y]) = pure (x, y)
+arg2 _ = mzero
 
 arg3 :: EvalCtx' r => CFact -> Sem r (CTerm, CTerm, CTerm)
 arg3 (CFact _ [x, y, z]) = pure (x, y, z)
@@ -120,17 +121,18 @@ mul = arg3 >=> \case
           invalid _ = True
           varOf (CTermVar v) = [v]
           varOf _ = []
-{-
+
+evalArith' :: (Member (Error RuntimeError) r, Member VMEnv r) => CTerm -> Sem r Number
+evalArith' t = getArithmetic >>= \arith -> evalArithCWith arith t
 
 arithEval :: EvalCtx' r => CFact -> Sem r ()
-arithEval = arg2 >=> \(x, t) -> evalArith t >>= errorToChoice . void . subAndUnify x . CTermNum
+arithEval = arg2 >=> \(x, t) -> evalArith' t >>= errorToChoice . void . subAndUnify x . CTermNum
 
 -- Evaluates the arithmetic expression. If the result is zero, this
 -- predicate fails. If not, the predicate succeeds once without
 -- unifying anything. The argument must be fully ground.
 arithGuard :: EvalCtx' r => CFact -> Sem r ()
-arithGuard = arg1 >=> \t -> evalArith t >>= \t' -> if t' == 0 then mzero else pure ()
--} -- ////
+arithGuard = arg1 >=> \t -> evalArith' t >>= \t' -> if t' == 0 then mzero else pure ()
 
 -- Evaluates the conditional only once. If the condition succeeds,
 -- evaluates the true argument. If it fails, evaluates the false
@@ -155,14 +157,12 @@ stdlib = CodeBody $ Map.fromList [
           ("call", [
             PrimClause "call" (builtinToPrim call)
            ]),
-{-
           ("=:", [
             PrimClause "=:" (builtinToPrim arithEval)
            ]),
           ("guard", [
             PrimClause "guard" (builtinToPrim arithGuard)
            ]),
--} -- ////
           ("if", [
             PrimClause "if" (builtinToPrim if_)
            ]),
