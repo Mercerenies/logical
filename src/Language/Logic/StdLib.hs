@@ -2,6 +2,9 @@
 
 module Language.Logic.StdLib(stdlib, getPrelude) where
 
+import Language.Logic.StdLib.Compiled
+{-
+
 import Language.Logic.Code
 import Language.Logic.Term
 import Language.Logic.Parser
@@ -172,3 +175,4 @@ getPrelude sym = do
   case tokenizeAndParse (OpTable mempty) sym "std/Prelude" code of
     Left err -> fail (show err)
     Right (clauses, op, sym') -> return (stdlib <> consolidateClauses clauses, op, sym')
+-}

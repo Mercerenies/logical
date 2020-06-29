@@ -69,10 +69,10 @@ fail_ :: EvalCtx' r => CFact -> Sem r ()
 fail_ _ = mzero
 
 call :: EvalCtx' r => CFact -> Sem r ()
-call = argsForCall >=> (evalGoal . cfactToFact)
+call = argsForCall >=> evalGoal
 
 block :: EvalCtx' r => CFact -> Sem r ()
-block (CFact _ xs) = mapM assertCompound xs >>= mapM_ (evalGoal . cfactToFact)
+block (CFact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
 
 {-
 -- add takes three arguments. At least two must be ground. If all
@@ -139,8 +139,8 @@ if_ = arg3 >=> \(c, t, f) -> do
         c' <- assertCompound c
         t' <- assertCompound t
         f' <- assertCompound f
-        res <- once $ (True <$ evalGoal (cfactToFact c')) <|> pure False
-        evalGoal (cfactToFact $ if res then t' else f')
+        res <- once $ (True <$ evalGoal c') <|> pure False
+        evalGoal (if res then t' else f')
 
 stdlib :: CodeBody String CFact
 stdlib = CodeBody $ Map.fromList [

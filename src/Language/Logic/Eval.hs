@@ -10,6 +10,7 @@ import Language.Logic.Unique
 import Language.Logic.Choice
 import Language.Logic.Error
 import Language.Logic.Tagged
+import Language.Logic.Compile
 import Language.Logic.SymbolTable(SymbolTable())
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
@@ -58,34 +59,37 @@ freshenClauseC (StdClause concl inner) = do
   return $ StdClause concl' inner'
 freshenClauseC (PrimClause s p) = pure $ PrimClause s p
 
-matchClause0 :: EvalCtx r => Fact -> Clause String Fact -> Sem r ()
+matchClause0 :: EvalCtx r => CFact -> CClause -> Sem r ()
 matchClause0 fact (StdClause concl inner) = do
-  fact' <- doSubFact fact
-  concl' <- doSubFact concl
-  inner' <- mapM doSubFact inner
+  fact' <- UC.doSubFact fact
+  concl' <- UC.doSubFact concl
+  inner' <- mapM UC.doSubFact inner
   nonDetToChoice . guard $ factHead fact' == factHead concl'
   nonDetToChoice . guard $ length (factBody fact') == length (factBody concl')
-  errorToChoice $ zipWithM_ subAndUnify (factBody fact') (factBody concl')
-  mapM_ (doSubFact >=> evalGoal) inner'
+  errorToChoice $ zipWithM_ UC.subAndUnify (factBody fact') (factBody concl')
+  mapM_ (UC.doSubFact >=> evalGoal) inner'
 matchClause0 fact (PrimClause s p) = do
-  fact' <- doSubFact fact
+  fact' <- UC.doSubFact fact
   nonDetToChoice . guard $ factHead fact' == s
   runEvalEff $ p fact'
 
-matchClause :: EvalCtx r => Fact -> Clause String Fact -> Sem r ()
-matchClause fact clause = freshenClause clause >>= matchClause0 fact
+matchClause :: EvalCtx r => CFact -> CClause -> Sem r ()
+matchClause fact clause = freshenClauseC clause >>= matchClause0 fact
 
-evalGoal :: EvalCtx r => Fact -> Sem r ()
+evalGoal :: EvalCtx r => CFact -> Sem r ()
 evalGoal fact = do
   --traceM $ "GOAL  " ++ show fact
   clauses <- asks (lookupHead $ factHead fact)
   nonDetToChoice $ oneOf (fmap (matchClause fact) clauses)
 
-runProgram :: SymbolTable -> CodeBody String Fact -> IO (Either RuntimeError (SymbolTable, Int))
+getMainGoal :: EvalCtx r => Sem r CFact
+getMainGoal = internTag "main" >>= \main -> pure $ CFact main []
+
+runProgram :: SymbolTable -> CodeBody (Tagged Atom SM.SymbolId) CFact -> IO (Either RuntimeError (SymbolTable, Int))
 runProgram sym body =
-    evalGoal (Fact "main" []) &
+    (getMainGoal >>= evalGoal) &
     runReader body &
-    evalAssumptionState &
+    UC.evalAssumptionState &
     errorToChoice @UnifyError &
     runChoice @[] &
     runUniqueInt & -- TODO Swap this with the above line? Is it safe?

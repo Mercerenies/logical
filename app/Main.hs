@@ -6,7 +6,11 @@ import Language.Logic.Term
 import Language.Logic.Code
 import Language.Logic.Parser
 import Language.Logic.StdLib
+import Language.Logic.Compile
 import Language.Logic.SymbolTable
+import Language.Logic.SymbolTable.Monad
+
+import Polysemy
 
 import qualified Data.Map as Map
 import System.Environment
@@ -25,9 +29,10 @@ main = do
           Left err -> print err >> exitFailure
           Right (clauses, _, sym'') -> do
               let clauses' = consolidateClauses clauses
-                  body = prelude <> clauses'
+                  (sym''', clauses'') = run $ runSymbolTableState sym'' (compileBody clauses')
+                  body = prelude <> clauses''
               --print clauses'
-              runProgram sym'' body >>= \case
+              runProgram sym''' body >>= \case
                 Left err -> print err >> exitFailure
                 Right _ -> pure ()
 

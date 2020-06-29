@@ -6,6 +6,7 @@ import Language.Logic.Term.Compiled
 import Language.Logic.Code
 import Language.Logic.SymbolTable.Monad
 import Language.Logic.Tagged
+import qualified Language.Logic.Util as Util
 
 import Polysemy
 import qualified Data.Text as T
@@ -22,3 +23,8 @@ compileClause' :: Member (SymbolTableState SymbolId) r =>
                   Clause String CFact -> Sem r (Clause (Tagged Atom SymbolId) CFact)
 compileClause' (StdClause f fs) = pure (StdClause f fs)
 compileClause' (PrimClause k g) = PrimClause <$> internTag k <*> pure g
+
+compileBody :: Member (SymbolTableState SymbolId) r =>
+               CodeBody String Fact -> Sem r (CodeBody (Tagged Atom SymbolId) CFact)
+compileBody (CodeBody m) = CodeBody <$> m'
+    where m' = Util.traverseKeys internTag m >>= traverse (traverse compileClause)

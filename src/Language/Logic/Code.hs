@@ -4,7 +4,6 @@ module Language.Logic.Code where
 
 import Language.Logic.Term
 import Language.Logic.Term.Compiled
-import Language.Logic.Unify(AssumptionState)
 import Language.Logic.Unique
 import Language.Logic.Choice
 import Language.Logic.Error
@@ -12,6 +11,7 @@ import Language.Logic.Tagged
 import qualified Language.Logic.Util as Util
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
+import qualified Language.Logic.Unify.Compiled as UC
 
 import Polysemy
 import Polysemy.Reader
@@ -20,8 +20,9 @@ import Polysemy.Error
 import Data.Map(Map)
 import qualified Data.Map as Map
 
-type EvalCtx r = (Member (Reader (CodeBody String Fact)) r, Member Choice r, Member (Unique Int) r,
-                  Member AssumptionState r, Member EM.EvalIO r, Member (Error RuntimeError) r,
+type EvalCtx r = (Member (Reader (CodeBody (Tagged Atom SM.SymbolId) CFact)) r, Member Choice r,
+                  Member (Unique Int) r,
+                  Member UC.AssumptionState r, Member EM.EvalIO r, Member (Error RuntimeError) r,
                   Member (SM.SymbolTableState SM.SymbolId) r)
 
 data EvalEff a = EvalEff (forall r. EvalCtx r => Sem r a)
