@@ -40,24 +40,32 @@ errorToChoice = nonDetToChoice . errorToNonDet . raiseUnder
 freshVar :: Member (Unique Int) r => Sem r String
 freshVar = uniques (\n -> "_G" ++ show n)
 
+replaceUnderscore :: Member (Unique Int) r => String -> Sem r String
+replaceUnderscore "_" = freshVar
+replaceUnderscore x   = pure x
+
 freshenClause :: Member (Unique Int) r => Clause String Fact -> Sem r (Clause String Fact)
 freshenClause (StdClause concl inner) = do
-  let vars = freeVarsInFact concl ++ concatMap freeVarsInFact inner
+  concl' <- traverseVarsInFact (fmap TermVar . replaceUnderscore) concl
+  inner' <- traverse (traverseVarsInFact (fmap TermVar . replaceUnderscore)) inner
+  let vars = freeVarsInFact concl' ++ concatMap freeVarsInFact inner'
   freshVars <- replicateM (length vars) freshVar
   let asm = Assumptions $ Map.fromList (zip vars $ fmap TermVar freshVars)
-      concl' = subOnceInFact asm concl
-      inner' = fmap (subOnceInFact asm) inner
-  return $ StdClause concl' inner'
+      concl'' = subOnceInFact asm concl'
+      inner'' = fmap (subOnceInFact asm) inner'
+  return $ StdClause concl'' inner''
 freshenClause (PrimClause s p) = pure $ PrimClause s p
 
 freshenClauseC :: Member (Unique Int) r => CClause -> Sem r CClause
 freshenClauseC (StdClause concl inner) = do
-  let vars = freeVarsInCFact concl ++ concatMap freeVarsInCFact inner
+  concl' <- traverseVarsInCFact (fmap CTermVar . replaceUnderscore) concl
+  inner' <- traverse (traverseVarsInCFact (fmap CTermVar . replaceUnderscore)) inner
+  let vars = freeVarsInCFact concl' ++ concatMap freeVarsInCFact inner'
   freshVars <- replicateM (length vars) freshVar
   let asm = UC.Assumptions $ Map.fromList (zip vars $ fmap CTermVar freshVars)
-      concl' = UC.subOnceInFact asm concl
-      inner' = fmap (UC.subOnceInFact asm) inner
-  return $ StdClause concl' inner'
+      concl'' = UC.subOnceInFact asm concl'
+      inner'' = fmap (UC.subOnceInFact asm) inner'
+  return $ StdClause concl'' inner''
 freshenClauseC (PrimClause s p) = pure $ PrimClause s p
 
 matchClause0 :: EvalCtx r => CFact -> CClause -> Sem r ()

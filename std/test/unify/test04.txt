@@ -1,0 +1,9 @@
+
+foo(_).
+
+bar(_): fail.
+
+main: {
+  foo(_);
+  not( bar(_) );
+}.

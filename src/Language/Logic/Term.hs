@@ -1,7 +1,8 @@
 
 module Language.Logic.Term(Term(..), Fact(..), Atom(..),
                            freeVars, freeVarsInFact, safeVar,
-                           renameVars, renameInFact) where
+                           renameVars, renameInFact,
+                           traverseVars, traverseVarsInFact) where
 
 import qualified Language.Logic.Util as Util
 import Language.Logic.Number(Number(..))
@@ -72,3 +73,12 @@ renameInFact xs (Fact h ts) =
     case renameVars xs (TermCompound h ts) of
       TermCompound _ ts' -> Fact h ts'
       _ -> error "renameVars changed shape in renameInFact"
+
+traverseVars :: Applicative f => (String -> f Term) -> Term -> f Term
+traverseVars f = go
+    where go (TermVar s) = f s
+          go (TermNum n) = pure (TermNum n)
+          go (TermCompound s args) = TermCompound s <$> traverse go args
+
+traverseVarsInFact :: Applicative f => (String -> f Term) -> Fact -> f Fact
+traverseVarsInFact f (Fact h ts) = Fact h <$> traverse (traverseVars f) ts

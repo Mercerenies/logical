@@ -50,3 +50,12 @@ freeVarsC (CTermCompound _ ts) = concatMap freeVarsC ts
 
 freeVarsInCFact :: CFact -> [String]
 freeVarsInCFact (CFact _ xs) = concatMap freeVarsC xs
+
+traverseVarsC :: Applicative f => (String -> f CTerm) -> CTerm -> f CTerm
+traverseVarsC f = go
+    where go (CTermVar s) = f s
+          go (CTermNum n) = pure (CTermNum n)
+          go (CTermCompound s args) = CTermCompound s <$> traverse go args
+
+traverseVarsInCFact :: Applicative f => (String -> f CTerm) -> CFact -> f CFact
+traverseVarsInCFact f (CFact h ts) = CFact h <$> traverse (traverseVarsC f) ts

@@ -1,0 +1,16 @@
+
+# Make sure variables explicitly named _Gnnn don't interfere with the
+# system-allocated ones.
+
+aaa(_G1): bbb(_G1).
+
+bbb(_G2): ccc(_G2).
+
+ccc(100).
+
+main: {
+  _G1 = _G3;
+  _G0 = _G3;
+  aaa(_G0);
+  _G1 = 100;
+}.
