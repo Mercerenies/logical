@@ -1,6 +1,8 @@
 
 module Language.Logic.Tagged where
 
+import Data.Hashable
+
 -- Tagged a b behaves like b for all intents and purposes. Two Tagged
 -- instances are equal if their second argument is equal, they compare
 -- for ordering by comparing their second argument, etc. The first
@@ -24,3 +26,7 @@ instance Ord b => Ord (Tagged a b) where
 
 instance Show a => Show (Tagged a b) where
     showsPrec n (Tagged a _) = showsPrec n a
+
+instance Hashable b => Hashable (Tagged a b) where
+    hashWithSalt n (Tagged _ b) = hashWithSalt n b
+    hash (Tagged _ b) = hash b

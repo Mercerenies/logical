@@ -5,10 +5,11 @@ module Language.Logic.Test.Tagged where
 import Language.Logic.Tagged
 
 import Test.HUnit
+import Data.Hashable
 
 tests :: Test
 tests = TestLabel "Language.Logic.Test.Tagged" $
-        TestList [testEq, testOrd, testShow, testStringId]
+        TestList [testEq, testOrd, testShow, testHash, testStringId]
 
 testEq :: Test
 testEq = TestLabel "testEq" $ TestList [
@@ -40,6 +41,15 @@ testShow = TestLabel "testShow" $ TestList [
     TestCase ("100" @=? show (Tagged 100 "foo")),
     TestCase ("100" @=? show (Tagged 100 (\_ -> ()))), -- Non-Show instance
     TestCase ("\"foo\"" @=? show (Tagged "foo" (\_ -> ()))) -- Non-Show instance
+  ]
+
+testHash :: Test
+testHash = TestLabel "testHash" $ TestList [
+    TestCase (assertBool "Hashes do not match" $ hash "abcdef" == hash (Tagged "foo" "abcdef")),
+    TestCase (assertBool "Hashes do not match" $ hash "abcdef" == hash (Tagged "abcdef" "abcdef")),
+    TestCase (assertBool "Hashes do not match" $ hash "" == hash (Tagged "foo" "")),
+    TestCase (assertBool "Hashes do not match" $ hash (10 :: Int) == hash (Tagged "foo" (10 :: Int))),
+    TestCase (assertBool "Hashes do not match" $ hash (4 :: Int) == hash (Tagged (\_ -> 999) (4 :: Int)))
   ]
 
 testStringId :: Test

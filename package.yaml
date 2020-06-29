@@ -32,6 +32,7 @@ dependencies:
 - unordered-containers >= 0.2 && < 1
 - text >= 1.2 && < 2
 - transformers >= 0.5 && < 1
+- hashable >= 1.0.1.1 && < 2
 
 ghc-options:
 - -O2
