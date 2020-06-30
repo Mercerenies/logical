@@ -1,0 +1,8 @@
+
+main: {
+  # Make sure that actual variables aren't being
+  # treated as underscores.
+  X = 10;
+  Y =: X + 1;
+  Y = 11;
+}.

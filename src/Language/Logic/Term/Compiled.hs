@@ -9,7 +9,8 @@ import Language.Logic.SymbolTable.Monad
 import Polysemy
 import qualified Data.Text as T
 
-data CTerm = CTermVar String
+data CTerm = CTermBlank
+           | CTermVar String
            | CTermNum Number
            | CTermCompound (Tagged Atom SymbolId) [CTerm]
              deriving (Eq, Ord)
@@ -18,6 +19,7 @@ data CFact = CFact (Tagged Atom SymbolId) [CTerm]
              deriving (Eq, Ord)
 
 ctermToTerm :: CTerm -> Term
+ctermToTerm CTermBlank = TermBlank
 ctermToTerm (CTermVar s) = TermVar s
 ctermToTerm (CTermNum n) = TermNum n
 ctermToTerm (CTermCompound (Tagged (Atom h) _) ts) = TermCompound h $ fmap ctermToTerm ts
@@ -32,6 +34,7 @@ instance Show CFact where
     showsPrec n = showsPrec n . cfactToFact
 
 compileTerm :: Member (SymbolTableState SymbolId) r => Term -> Sem r CTerm
+compileTerm TermBlank = pure CTermBlank
 compileTerm (TermVar s) = pure (CTermVar s)
 compileTerm (TermNum n) = pure (CTermNum n)
 compileTerm (TermCompound h ts) = CTermCompound <$> h' <*> ts'
@@ -44,6 +47,7 @@ compileFact (Fact h ts) = CFact <$> h' <*> ts'
           ts' = mapM compileTerm ts
 
 freeVarsC :: CTerm -> [String]
+freeVarsC CTermBlank = []
 freeVarsC (CTermVar s) = [s]
 freeVarsC (CTermNum {}) = []
 freeVarsC (CTermCompound _ ts) = concatMap freeVarsC ts
@@ -53,7 +57,8 @@ freeVarsInCFact (CFact _ xs) = concatMap freeVarsC xs
 
 traverseVarsC :: Applicative f => (String -> f CTerm) -> CTerm -> f CTerm
 traverseVarsC f = go
-    where go (CTermVar s) = f s
+    where go CTermBlank = pure CTermBlank
+          go (CTermVar s) = f s
           go (CTermNum n) = pure (CTermNum n)
           go (CTermCompound s args) = CTermCompound s <$> traverse go args
 

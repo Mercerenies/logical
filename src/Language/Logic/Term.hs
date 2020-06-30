@@ -9,7 +9,8 @@ import Language.Logic.Number(Number(..))
 
 import Data.Char
 
-data Term = TermVar String
+data Term = TermBlank
+          | TermVar String
           | TermNum Number
           | TermCompound String [Term]
             deriving (Eq, Ord)
@@ -21,6 +22,7 @@ newtype Atom = Atom String
     deriving (Eq, Ord)
 
 instance Show Term where
+    showsPrec _ TermBlank = ("_" ++)
     showsPrec _ (TermVar v) = (v ++)
     showsPrec _ (TermNum n) = shows n
     showsPrec _ (TermCompound s args) = showsAtomic s . ("(" ++) . args' . (")" ++)
@@ -47,6 +49,7 @@ showsAtomic s =
         ("`" ++) . (s ++) . ("`" ++)
 
 freeVars :: Term -> [String]
+freeVars TermBlank = []
 freeVars (TermVar s) = [s]
 freeVars (TermNum {}) = []
 freeVars (TermCompound _ ts) = concatMap freeVars ts
@@ -60,7 +63,8 @@ safeVar xs s = head $ filter (`notElem` xs) possibilities
 
 renameVars :: [String] -> Term -> Term
 renameVars xs t = go t
-    where go (TermVar s) = TermVar $ replaceVar s
+    where go TermBlank = TermBlank
+          go (TermVar s) = TermVar $ replaceVar s
           go (TermNum n) = TermNum n
           go (TermCompound s args) = TermCompound s $ fmap go args
           xs' = xs ++ freeVars t
@@ -76,7 +80,8 @@ renameInFact xs (Fact h ts) =
 
 traverseVars :: Applicative f => (String -> f Term) -> Term -> f Term
 traverseVars f = go
-    where go (TermVar s) = f s
+    where go TermBlank = pure TermBlank
+          go (TermVar s) = f s
           go (TermNum n) = pure (TermNum n)
           go (TermCompound s args) = TermCompound s <$> traverse go args
 

@@ -94,7 +94,8 @@ add = arg3 >=> \case
           | invalid b -> throw (TypeError "variable or number" $ ctermToTerm b)
           | invalid c -> throw (TypeError "variable or number" $ ctermToTerm c)
           | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
-    where invalid (CTermVar _) = False
+    where invalid CTermBlank   = False
+          invalid (CTermVar _) = False
           invalid (CTermNum _) = False
           invalid _ = True
           varOf (CTermVar v) = [v]
@@ -116,7 +117,8 @@ mul = arg3 >=> \case
           | invalid b -> throw (TypeError "variable or number" $ ctermToTerm b)
           | invalid c -> throw (TypeError "variable or number" $ ctermToTerm c)
           | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
-    where invalid (CTermVar _) = False
+    where invalid CTermBlank   = False
+          invalid (CTermVar _) = False
           invalid (CTermNum _) = False
           invalid _ = True
           varOf (CTermVar v) = [v]
