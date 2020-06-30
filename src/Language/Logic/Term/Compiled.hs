@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns #-}
 
 module Language.Logic.Term.Compiled where
 
@@ -5,6 +6,7 @@ import Language.Logic.Term
 import Language.Logic.Tagged
 import Language.Logic.Number(Number(..))
 import Language.Logic.SymbolTable.Monad
+import qualified Language.Logic.Names as Names
 
 import Polysemy
 import qualified Data.Text as T
@@ -17,6 +19,12 @@ data CTerm = CTermBlank
 
 data CFact = CFact (Tagged Atom SymbolId) [CTerm]
              deriving (Eq, Ord)
+
+pattern CTermIsVar :: String -> CTerm
+pattern CTermIsVar v <- (varNameC -> Just v)
+    where CTermIsVar v
+              | v == Names.blankVar = CTermBlank
+              | otherwise = CTermVar v
 
 ctermToTerm :: CTerm -> Term
 ctermToTerm CTermBlank = TermBlank
@@ -64,3 +72,8 @@ traverseVarsC f = go
 
 traverseVarsInCFact :: Applicative f => (String -> f CTerm) -> CFact -> f CFact
 traverseVarsInCFact f (CFact h ts) = CFact h <$> traverse (traverseVarsC f) ts
+
+varNameC :: CTerm -> Maybe String
+varNameC CTermBlank = Just Names.blankVar
+varNameC (CTermVar s) = Just s
+varNameC _ = Nothing

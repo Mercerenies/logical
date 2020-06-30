@@ -1,0 +1,11 @@
+
+# Underscore tests (II)
+
+main: {
+  # Underscores are always allowed on the left-hand of this.
+  _ =: 1 + 1;
+  _ =: 6 * 3 + 2;
+  X = 10;
+  _ =: X / X;
+  # TODO Make sure that underscores on the right-hand produce an error.
+}.

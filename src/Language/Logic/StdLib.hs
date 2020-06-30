@@ -84,10 +84,13 @@ block (CFact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
 -- is raised.
 add :: EvalCtx' r => CFact -> Sem r ()
 add = arg3 >=> \case
-      (CTermNum a, CTermNum b, CTermNum c) -> guard (a + b == c)
-      (CTermVar a, CTermNum b, CTermNum c) -> errorToChoice . void $ subAndUnify (CTermVar a) (CTermNum (c - b))
-      (CTermNum a, CTermVar b, CTermNum c) -> errorToChoice . void $ subAndUnify (CTermVar b) (CTermNum (c - a))
-      (CTermNum a, CTermNum b, CTermVar c) -> errorToChoice . void $ subAndUnify (CTermVar c) (CTermNum (a + b))
+      (CTermNum   a, CTermNum   b, CTermNum   c) -> guard (a + b == c)
+      (CTermIsVar a, CTermNum   b, CTermNum   c) ->
+          errorToChoice . void $ subAndUnify (CTermIsVar a) (CTermNum (c - b))
+      (CTermNum   a, CTermIsVar b, CTermNum   c) ->
+          errorToChoice . void $ subAndUnify (CTermIsVar b) (CTermNum (c - a))
+      (CTermNum   a, CTermNum   b, CTermIsVar c) ->
+          errorToChoice . void $ subAndUnify (CTermIsVar c) (CTermNum (a + b))
       -- Beyond this, there's an error. We just need to decide which error
       (a, b, c)
           | invalid a -> throw (TypeError "variable or number" $ ctermToTerm a)
@@ -98,7 +101,7 @@ add = arg3 >=> \case
           invalid (CTermVar _) = False
           invalid (CTermNum _) = False
           invalid _ = True
-          varOf (CTermVar v) = [v]
+          varOf (CTermIsVar v) = [v]
           varOf _ = []
 
 -- mul operates like add in terms of requiring all arguments to be
@@ -107,10 +110,13 @@ add = arg3 >=> \case
 -- floating point infinity or NaN.
 mul :: EvalCtx' r => CFact -> Sem r ()
 mul = arg3 >=> \case
-      (CTermNum a, CTermNum b, CTermNum c) -> guard (a * b == c)
-      (CTermVar a, CTermNum b, CTermNum c) -> errorToChoice . void $ subAndUnify (CTermVar a) (CTermNum (c / b))
-      (CTermNum a, CTermVar b, CTermNum c) -> errorToChoice . void $ subAndUnify (CTermVar b) (CTermNum (c / a))
-      (CTermNum a, CTermNum b, CTermVar c) -> errorToChoice . void $ subAndUnify (CTermVar c) (CTermNum (a * b))
+      (CTermNum   a, CTermNum   b, CTermNum   c) -> guard (a * b == c)
+      (CTermIsVar a, CTermNum   b, CTermNum   c) ->
+          errorToChoice . void $ subAndUnify (CTermIsVar a) (CTermNum (c / b))
+      (CTermNum   a, CTermIsVar b, CTermNum   c) ->
+          errorToChoice . void $ subAndUnify (CTermIsVar b) (CTermNum (c / a))
+      (CTermNum   a, CTermNum   b, CTermIsVar c) ->
+          errorToChoice . void $ subAndUnify (CTermIsVar c) (CTermNum (a * b))
       -- Beyond this, there's an error. We just need to decide which error
       (a, b, c)
           | invalid a -> throw (TypeError "variable or number" $ ctermToTerm a)
@@ -121,7 +127,7 @@ mul = arg3 >=> \case
           invalid (CTermVar _) = False
           invalid (CTermNum _) = False
           invalid _ = True
-          varOf (CTermVar v) = [v]
+          varOf (CTermIsVar v) = [v]
           varOf _ = []
 
 evalArith' :: (Member (Error RuntimeError) r, Member VMEnv r) => CTerm -> Sem r Number
