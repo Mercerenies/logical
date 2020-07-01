@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 23e62c8e4c1a13a627beeccab6e7c1fc24ce5a29acd3ce82c4f44e78b4140fe3
+-- hash: 67fc4c2853ac02e8cac44cb77746f7db97c2e6b6a0042379838c20d5dbc8d71d
 
 name:           logical
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Language.Logic.Choice
+      Language.Logic.CmdArgs
       Language.Logic.Code
       Language.Logic.Compile
       Language.Logic.Decl
@@ -64,6 +65,7 @@ library
     , directory >=1.0 && <2.0
     , hashable >=1.0.1.1 && <2
     , mtl >=1.1.1 && <2.3
+    , optparse-applicative >=0.14 && <1
     , parsec >=3.1 && <3.2
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
@@ -87,6 +89,7 @@ executable logical-exe
     , hashable >=1.0.1.1 && <2
     , logical
     , mtl >=1.1.1 && <2.3
+    , optparse-applicative >=0.14 && <1
     , parsec >=3.1 && <3.2
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
@@ -118,6 +121,7 @@ test-suite logical-test
     , hashable >=1.0.1.1 && <2
     , logical
     , mtl >=1.1.1 && <2.3
+    , optparse-applicative >=0.14 && <1
     , parsec >=3.1 && <3.2
     , polysemy >=1.3 && <1.4
     , polysemy-plugin >=0.2.3 && <0.3
