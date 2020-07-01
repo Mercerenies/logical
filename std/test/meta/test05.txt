@@ -1,0 +1,14 @@
+
+# Ensure that underscores in intermediate structures work correctly.
+
+nottrue(Y): {
+  Y = foo(1);
+  Y = foo(2);
+}.
+
+main: {
+  X = foo(_);
+  not( nottrue(X) );
+}.
+
+# ///// This test fails right now!!!!!
