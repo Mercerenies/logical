@@ -87,9 +87,9 @@ evalGoal fact = do
 getMainGoal :: EvalCtx r => Sem r CFact
 getMainGoal = internTag "main" >>= \main -> pure $ CFact main []
 
-runProgram :: VMData -> SymbolTable -> CodeBody (Tagged Atom SM.SymbolId) CFact ->
+runProgram :: VMData -> SymbolTable -> DebugLevel -> CodeBody (Tagged Atom SM.SymbolId) CFact ->
               IO (Either RuntimeError (SymbolTable, Int))
-runProgram vm sym body =
+runProgram vm sym dbg body =
     (getMainGoal >>= evalGoal) &
     runReader body &
     runVMEnv vm &
@@ -99,7 +99,7 @@ runProgram vm sym body =
     runUniqueInt & -- TODO Swap this with the above line? Is it safe?
                    -- It would make the var numbers less insane.
     SM.runSymbolTableState sym &
-    runLogMsg NoDebug &
+    runLogMsg dbg &
     EM.evalToIO &
     runError @RuntimeError &
     embedToFinal &

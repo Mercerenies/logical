@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Main where
 
@@ -7,35 +8,32 @@ import Language.Logic.Code
 import Language.Logic.Parser
 import Language.Logic.StdLib
 import Language.Logic.Compile
+import Language.Logic.CmdArgs
 import Language.Logic.SymbolTable
 import Language.Logic.SymbolTable.Monad
 
 import Polysemy
 
 import qualified Data.Map as Map
-import System.Environment
 import System.Exit
 
 main :: IO ()
 main = do
-  args <- getArgs
-  case args of
-    [] -> putStrLn "Please provide an input filename" >> exitFailure
-    (fname:_) -> do
-        let sym = emptyTable
-        contents <- readFile fname
-        (prelude, op, sym') <- getPrelude sym
-        let (vm, sym'') = getVMData sym'
-        case tokenizeAndParse op sym'' fname contents of
+  CmdArgs {..} <- parseCmd
+  let sym = emptyTable
+  contents <- readFile cmdFileName
+  (prelude, op, sym') <- getPrelude sym
+  let (vm, sym'') = getVMData sym'
+  case tokenizeAndParse op sym'' cmdFileName contents of
+    Left err -> print err >> exitFailure
+    Right (clauses, _, sym''') -> do
+        let clauses' = consolidateClauses clauses
+            (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
+            body = prelude <> clauses''
+        --print clauses'
+        runProgram vm sym'''' cmdDebugLevel body >>= \case
           Left err -> print err >> exitFailure
-          Right (clauses, _, sym''') -> do
-              let clauses' = consolidateClauses clauses
-                  (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
-                  body = prelude <> clauses''
-              --print clauses'
-              runProgram vm sym'''' body >>= \case
-                Left err -> print err >> exitFailure
-                Right _ -> pure ()
+          Right _ -> pure ()
 
 --print $ runProgram example
 

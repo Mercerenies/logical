@@ -8,6 +8,7 @@ import Language.Logic.StdLib
 import Language.Logic.Compile
 import Language.Logic.SymbolTable
 import Language.Logic.SymbolTable.Monad
+import Language.Logic.Debug(DebugLevel(NoDebug))
 
 import Test.HUnit
 import Polysemy
@@ -33,7 +34,7 @@ runTestFile fpath = TestLabel fpath $ TestCase go
             let clauses' = consolidateClauses clauses
                 (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
                 body = prelude <> clauses''
-            (_, results) <- runProgram vm sym'''' body >>= eitherToIO
+            (_, results) <- runProgram vm sym'''' NoDebug body >>= eitherToIO
             assertBool ("Test file " ++ fpath) $ (results > 0)
 
 discoverTestFiles :: FilePath -> IO [FilePath]
