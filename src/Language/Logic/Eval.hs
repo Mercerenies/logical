@@ -12,6 +12,7 @@ import Language.Logic.Choice
 import Language.Logic.Error
 import Language.Logic.Tagged
 import Language.Logic.Compile
+import Language.Logic.Debug
 import Language.Logic.SymbolTable(SymbolTable())
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
@@ -79,7 +80,7 @@ matchClause fact clause = freshenClauseC clause >>= matchClause0 fact
 
 evalGoal :: EvalCtx r => CFact -> Sem r ()
 evalGoal fact = do
-  --traceM $ "GOAL  " ++ show fact
+  logMsgMax $ "GOAL  " ++ show fact
   clauses <- asks (lookupHead $ factHead fact)
   nonDetToChoice $ oneOf (fmap (matchClause fact) clauses)
 
@@ -98,6 +99,7 @@ runProgram vm sym body =
     runUniqueInt & -- TODO Swap this with the above line? Is it safe?
                    -- It would make the var numbers less insane.
     SM.runSymbolTableState sym &
+    runLogMsg NoDebug &
     EM.evalToIO &
     runError @RuntimeError &
     embedToFinal &

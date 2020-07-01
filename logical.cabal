@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 67fc4c2853ac02e8cac44cb77746f7db97c2e6b6a0042379838c20d5dbc8d71d
+-- hash: 5c699cd84fa87d0133b20a5c5c6c6220b80c28e9711326fafc375df5808f77b3
 
 name:           logical
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       Language.Logic.CmdArgs
       Language.Logic.Code
       Language.Logic.Compile
+      Language.Logic.Debug
       Language.Logic.Decl
       Language.Logic.Error
       Language.Logic.Eval
@@ -61,6 +62,8 @@ library
   ghc-options: -O2 -flate-specialise -fspecialize-aggressively -fplugin=Polysemy.Plugin -Wall -Wextra -Werror -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat
   build-depends:
       base >=4.7 && <5
+    , co-log-core >=0.2 && <1
+    , co-log-polysemy >=0.0.1.2 && <1
     , containers >=0.5 && <1
     , directory >=1.0 && <2.0
     , hashable >=1.0.1.1 && <2
@@ -84,6 +87,8 @@ executable logical-exe
   ghc-options: -O2 -flate-specialise -fspecialize-aggressively -fplugin=Polysemy.Plugin -Wall -Wextra -Werror -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , co-log-core >=0.2 && <1
+    , co-log-polysemy >=0.0.1.2 && <1
     , containers >=0.5 && <1
     , directory >=1.0 && <2.0
     , hashable >=1.0.1.1 && <2
@@ -116,6 +121,8 @@ test-suite logical-test
   build-depends:
       HUnit >=1 && <2
     , base >=4.7 && <5
+    , co-log-core >=0.2 && <1
+    , co-log-polysemy >=0.0.1.2 && <1
     , containers >=0.5 && <1
     , directory >=1.0 && <2.0
     , hashable >=1.0.1.1 && <2

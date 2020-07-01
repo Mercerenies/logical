@@ -34,6 +34,8 @@ dependencies:
 - transformers >= 0.5 && < 1
 - hashable >= 1.0.1.1 && < 2
 - optparse-applicative >= 0.14 && < 1
+- co-log-core >= 0.2 && < 1
+- co-log-polysemy >= 0.0.1.2 && < 1
 
 ghc-options:
 - -O2
