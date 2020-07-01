@@ -57,5 +57,3 @@ example = CodeBody (Map.fromList clauses)
             ("bar", [StdClause (Fact "bar" [TermVar "X"]) [Fact "foo" [TermVar "X"]]]),
             ("main", [StdClause (Fact "main" []) [Fact "bar" [TermVar "X"]]])
            ]
-
--- ///// SymbolTable interning of term symbols
