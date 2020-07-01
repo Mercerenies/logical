@@ -16,6 +16,7 @@ import Polysemy
 
 import qualified Data.Map as Map
 import System.Exit
+import Control.Monad
 
 main :: IO ()
 main = do
@@ -30,7 +31,7 @@ main = do
         let clauses' = consolidateClauses clauses
             (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
             body = prelude <> clauses''
-        --print clauses'
+        when cmdDebugKB $ print clauses'
         runProgram vm sym'''' cmdDebugLevel body >>= \case
           Left err -> print err >> exitFailure
           Right _ -> pure ()

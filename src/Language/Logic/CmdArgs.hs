@@ -8,6 +8,7 @@ import qualified Language.Logic.Util as Util
 
 data CmdArgs = CmdArgs {
       cmdDebugLevel :: DebugLevel,
+      cmdDebugKB :: Bool,
       cmdFileName :: FilePath
     }
 
@@ -21,11 +22,16 @@ optDebugLevel = option readDebugLevel
                 <> showDefaultWith (show . fromEnum)
                 <> value NoDebug)
 
+optDebugKB :: Parser Bool
+optDebugKB = switch
+              (  long "debug-print-kb"
+              <> help "Display the knowledge base before executing")
+
 optFileName :: Parser FilePath
 optFileName = argument str (metavar "FILE")
 
 cmdArgsParser :: Parser CmdArgs
-cmdArgsParser = CmdArgs <$> optDebugLevel <*> optFileName
+cmdArgsParser = CmdArgs <$> optDebugLevel <*> optDebugKB <*> optFileName
 
 cmdArgsDesc :: InfoMod CmdArgs
 cmdArgsDesc = fullDesc <> header "A logic-oriented programming language"
