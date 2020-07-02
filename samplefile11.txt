@@ -1,0 +1,18 @@
+
+main: {
+
+  length([1, 2, 3], N);
+  write_term(first(N));
+
+  length([], M);
+  write_term(second(M));
+
+  # Slightly harder
+  length(A, 3);
+  write_term(third(A));
+
+  # Now we get to the truly funky situations.
+  length(B, K);
+  write_term(fourth(B, K));
+
+}.

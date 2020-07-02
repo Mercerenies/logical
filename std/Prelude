@@ -110,3 +110,16 @@ concat_map(F, X :: XS, YS): {
   append(YS1, YS2, YS);
   concat_map(F, XS, YS2);
 }.
+
+length([], 0).
+length(_ :: XS, N): {
+  var(N);
+  length(XS, N1);
+  N =: N1 + 1;
+}.
+length(_ :: XS, N): {
+  number(N);
+  N > 0;
+  N1 =: N - 1;
+  length(XS, N1);
+}.

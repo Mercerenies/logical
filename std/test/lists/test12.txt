@@ -1,0 +1,2 @@
+
+main: not(length(A, A)).

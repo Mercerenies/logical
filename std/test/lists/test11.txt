@@ -1,0 +1,13 @@
+
+main: {
+  once({
+    length(A, N);
+    A = [];
+    N = 0;
+  });
+  once({
+    length(_ :: _ :: B, M);
+    B = [];
+    M = 2;
+  });
+}.

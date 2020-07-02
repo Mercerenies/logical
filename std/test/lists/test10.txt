@@ -1,0 +1,7 @@
+
+main: {
+  length(Z, 0);
+  Z = [];
+  length(W, 2);
+  W = [_, _];
+}.

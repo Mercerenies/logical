@@ -1,0 +1,9 @@
+
+main: {
+  length([1, 2, 3], 3);
+  length([], 0);
+  length([1, 2, 3], N0);
+  N0 = 3;
+  length([], N1);
+  N1 = 0;
+}.
