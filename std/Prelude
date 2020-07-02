@@ -78,3 +78,22 @@ map(F, X :: XS, Y :: YS, Z :: ZS, T :: TS): {
   call(F, X, Y, Z, T);
   map(F, XS, YS, ZS, TS);
 }.
+
+append([], YS, YS).
+append(X :: XS, YS, X :: ZS):
+  append(XS, YS, ZS).
+
+filter(_, [], []).
+filter(F, X :: XS, YS):
+  if(
+    call(F, X),
+    { YS = Z :: ZS; filter(F, XS, ZS); },
+    { filter(F, XS, YS); }
+  ).
+
+concat_map(_, [], []).
+concat_map(F, X :: XS, YS): {
+  call(F, X, YS1);
+  append(YS1, YS2, YS);
+  concat_map(F, XS, YS2);
+}.

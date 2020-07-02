@@ -1,0 +1,15 @@
+
+repeat_n_times(0, _, []).
+repeat_n_times(N, X, X :: XS): {
+  N > 0;
+  N1 =: N - 1;
+  repeat_n_times(N1, X, XS);
+}.
+
+repeat_self_n_times(N, XS):
+  repeat_n_times(N, N, XS).
+
+main: {
+  concat_map(repeat_self_n_times, [0, 1, 2, 3, 2, 1, 0], XS);
+  XS = [1, 2, 2, 3, 3, 3, 2, 2, 1];
+}.
