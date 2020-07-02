@@ -10,5 +10,3 @@ main: {
   X = foo(_);
   not( nottrue(X) );
 }.
-
-# ///// This test fails right now!!!!!

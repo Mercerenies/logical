@@ -32,21 +32,23 @@ data Token = TokenVar String
              deriving (Eq, Ord, Show)
 
 data Spec = OpenParen | CloseParen | Colon | Semicolon | Dot | Comma |
-            OpenBrace | CloseBrace
+            OpenBrace | CloseBrace | OpenBracket | CloseBracket
             deriving (Eq, Ord, Enum, Show)
 
 data Keyword = Operator
                deriving (Eq, Ord, Enum, Show)
 
 pspecial :: Parser Spec
-pspecial = OpenParen  <$ char '(' <|>
-           CloseParen <$ char ')' <|>
-           Colon      <$ char ':' <|>
-           Semicolon  <$ char ';' <|>
-           Dot        <$ char '.' <|>
-           Comma      <$ char ',' <|>
-           OpenBrace  <$ char '{' <|>
-           CloseBrace <$ char '}'
+pspecial = OpenParen    <$ char '(' <|>
+           CloseParen   <$ char ')' <|>
+           Colon        <$ char ':' <|>
+           Semicolon    <$ char ';' <|>
+           Dot          <$ char '.' <|>
+           Comma        <$ char ',' <|>
+           OpenBrace    <$ char '{' <|>
+           CloseBrace   <$ char '}' <|>
+           OpenBracket  <$ char '[' <|>
+           CloseBracket <$ char ']'
 
 keywords :: [String]
 keywords = ["operator"]

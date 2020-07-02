@@ -1,0 +1,25 @@
+
+# Mapping (I)
+
+always_fail(_): fail.
+always_fail(_, _): fail.
+
+always_succeed(_).
+always_succeed(_, _).
+
+main: {
+
+  map(always_fail, []);
+  map(always_fail, [], []);
+  not(map(always_fail, [1], [2]));
+  not(map(always_fail, [1]));
+  not(map(always_fail, 1 :: 2));
+
+  map(always_succeed, []);
+  map(always_succeed, [1, 2, 3]);
+  map(always_succeed, [1, 2, 3], [4, 5, 6]);
+  map(always_succeed, [], []);
+  not(map(always_succeed, [], [3]));
+  not(map(always_succeed, 1 :: 2));
+
+}.

@@ -6,6 +6,7 @@ import Language.Logic.Code
 import Language.Logic.Decl
 import Language.Logic.Parser.Token
 import qualified Language.Logic.Parser.Op as Op
+import qualified Language.Logic.Names as Names
 import Language.Logic.Number(Number(..))
 import Language.Logic.SymbolTable
 
@@ -61,6 +62,7 @@ term = (TermVar <$> var) <|>
        (TermNum . fromInteger) <$> integer <|>
        (TermNum . NumRat) <$> ratio <|>
        (TermNum . NumFloat) <$> float <|>
+       listTerm <|>
        (special OpenParen *> term' <* special CloseParen) <|>
        uncurry TermCompound <$> compoundTerm'
 
@@ -73,6 +75,13 @@ term' = do
       terms = NonEmpty.fromList $ firstterms ++ restterms -- firstterms must be nonempty so this is safe
       result = Op.resolvePrec optable comp terms
   either (fail . show) pure result
+
+listTerm :: Parser Term
+listTerm = do
+  _ <- special OpenBracket
+  terms <- sepBy term' (special Comma)
+  _ <- special CloseBracket
+  return $ foldr (\a b -> TermCompound Names.consList [a, b]) (TermCompound Names.emptyList []) terms
 
 fact :: Parser Fact
 fact = term' >>= \case

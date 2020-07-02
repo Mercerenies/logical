@@ -6,3 +6,9 @@ module Language.Logic.Names where
 
 blankVar :: String
 blankVar = "_"
+
+emptyList :: String
+emptyList = "[]"
+
+consList :: String
+consList = "::"

@@ -9,11 +9,12 @@ operator  infix <= :  left 40.
 operator  infix >= :  left 40.
 operator  infix == :  left 40.
 operator  infix != :  left 40.
-operator  infix  + :  left 60.
-operator  infix  - :  left 60.
-operator prefix  - : right 60.
-operator  infix  * :  left 70.
-operator  infix  / :  left 70.
+operator  infix :: : right 60.
+operator  infix  + :  left 70.
+operator  infix  - :  left 70.
+operator prefix  - : right 70.
+operator  infix  * :  left 80.
+operator  infix  / :  left 80.
 
 false:
   fail.
@@ -52,3 +53,28 @@ A <= B: guard(A <= B).
 A >= B: guard(A >= B).
 A == B: guard(A == B).
 A != B: guard(A != B).
+
+# List predicates
+map(_, []).
+map(F, X :: XS): {
+  call(F, X);
+  map(F, XS);
+}.
+
+map(_, [], []).
+map(F, X :: XS, Y :: YS): {
+  call(F, X, Y);
+  map(F, XS, YS);
+}.
+
+map(_, [], [], []).
+map(F, X :: XS, Y :: YS, Z :: ZS): {
+  call(F, X, Y, Z);
+  map(F, XS, YS, ZS);
+}.
+
+map(_, [], [], [], []).
+map(F, X :: XS, Y :: YS, Z :: ZS, T :: TS): {
+  call(F, X, Y, Z, T);
+  map(F, XS, YS, ZS, TS);
+}.

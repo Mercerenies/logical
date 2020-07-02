@@ -1,0 +1,15 @@
+
+# Mapping (IV)
+
+increase_from(A, B, C, D): {
+  B =: A + 1;
+  C =: B + 1;
+  D =: C + 1;
+}.
+
+main: {
+  map(increase_from, [1, 10], X, Y, Z);
+  X = [2, 11];
+  Y = [3, 12];
+  Z = [4, 13];
+}.
