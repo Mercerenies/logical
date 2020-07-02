@@ -1,0 +1,25 @@
+
+main: {
+
+  atom(foobar);
+  atom(foobar());
+  foobar = foobar();
+  not(atom(foobar(1)));
+
+  var(X);
+  var(Y);
+  not( nonvar(X) );
+  not( nonvar(Y) );
+
+  X =: 1 / 2;
+  ratio(X);
+
+  Y =: 1.0 / 2;
+  not(ratio(Y));
+
+  not( var(X) );
+  not( var(Y) );
+  nonvar(X);
+  nonvar(Y);
+
+}.

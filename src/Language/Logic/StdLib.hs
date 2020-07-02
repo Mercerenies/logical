@@ -18,6 +18,7 @@ import Language.Logic.StdLib.Arithmetic
 import Language.Logic.VMData
 import Language.Logic.SymbolTable(SymbolTable())
 import Language.Logic.SymbolTable.Monad
+import Language.Logic.StdLib.TypeOf(typeOf')
 import Language.Logic.Var(replaceUnderscores')
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.Util as Util
@@ -77,6 +78,10 @@ call = argsForCall >=> evalGoal
 
 block :: EvalCtx' r => CFact -> Sem r ()
 block (CFact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
+
+typeOfValue :: EvalCtx' r => CFact -> Sem r ()
+typeOfValue = arg2 >=> \(term, tyvar) ->
+              typeOf' term >>= \ty -> errorToChoice . void $ subAndUnify tyvar ty
 
 -- add takes three arguments. At least two must be ground. If all
 -- three are ground, it verifies that the first two sum to the third.
@@ -181,6 +186,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("mul", [
             PrimClause "mul" (builtinToPrim mul)
+           ]),
+          ("type_of", [
+            PrimClause "type_of" (builtinToPrim typeOfValue)
            ])
          ]
 

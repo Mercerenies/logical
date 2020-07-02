@@ -1,0 +1,9 @@
+
+main: {
+  nonvar(10);
+  nonvar(10);
+  nonvar(10.0);
+  nonvar(10.0);
+  nonvar(foo);
+  nonvar(foo(a, b, c));
+}.

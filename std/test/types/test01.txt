@@ -1,0 +1,11 @@
+
+main: {
+  type_of(A, variable);
+  type_of(10, number(ratio));
+  type_of(10.0, number(float));
+  type_of(foo, compound(foo, 0));
+  type_of(foo(a, b, c), compound(foo, 3));
+  type_of(_, variable);
+  type_of(B, C);
+  C = variable;
+}.

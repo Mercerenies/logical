@@ -54,6 +54,19 @@ A >= B: guard(A >= B).
 A == B: guard(A == B).
 A != B: guard(A != B).
 
+# Type predicates
+var(X): type_of(X, variable).
+nonvar(X): {
+  type_of(X, T);
+  not(T = variable);
+}.
+number(X): type_of(X, number(_)).
+ratio(X): type_of(X, number(ratio)).
+float(X): type_of(X, number(float)).
+compound(X): type_of(X, compound(_, _)).
+atom(X): type_of(X, compound(_, 0)).
+# TODO Test for integer once we can extract num and denom from a ratio
+
 # List predicates
 map(_, []).
 map(F, X :: XS): {

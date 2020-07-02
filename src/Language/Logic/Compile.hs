@@ -28,3 +28,12 @@ compileBody :: Member (SymbolTableState SymbolId) r =>
                CodeBody String Fact -> Sem r (CodeBody (Tagged Atom SymbolId) CFact)
 compileBody (CodeBody m) = CodeBody <$> m'
     where m' = Util.traverseKeys internTag m >>= traverse (traverse compileClause)
+
+compound :: Member (SymbolTableState SymbolId) r => String -> [CTerm] -> Sem r CTerm
+compound hd tl = CTermCompound <$> internTag hd <*> pure tl
+
+atom :: Member (SymbolTableState SymbolId) r => String -> Sem r CTerm
+atom hd = compound hd []
+
+compound' :: Member (SymbolTableState SymbolId) r => String -> [Sem r CTerm] -> Sem r CTerm
+compound' hd tl = sequence tl >>= compound hd
