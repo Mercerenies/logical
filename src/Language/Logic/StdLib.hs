@@ -18,6 +18,7 @@ import Language.Logic.StdLib.Arithmetic
 import Language.Logic.VMData
 import Language.Logic.SymbolTable(SymbolTable())
 import Language.Logic.SymbolTable.Monad
+import Language.Logic.Var(replaceUnderscores')
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.Util as Util
 
@@ -97,8 +98,7 @@ add = arg3 >=> \case
           | invalid b -> throw (TypeError "variable or number" $ ctermToTerm b)
           | invalid c -> throw (TypeError "variable or number" $ ctermToTerm c)
           | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
-    where invalid CTermBlank   = False
-          invalid (CTermVar _) = False
+    where invalid (CTermVar _) = False
           invalid (CTermNum _) = False
           invalid _ = True
           varOf (CTermIsVar v) = [v]
@@ -123,8 +123,7 @@ mul = arg3 >=> \case
           | invalid b -> throw (TypeError "variable or number" $ ctermToTerm b)
           | invalid c -> throw (TypeError "variable or number" $ ctermToTerm c)
           | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
-    where invalid CTermBlank   = False
-          invalid (CTermVar _) = False
+    where invalid (CTermVar _) = False
           invalid (CTermNum _) = False
           invalid _ = True
           varOf (CTermIsVar v) = [v]
@@ -197,8 +196,9 @@ getPrelude sym = do
     Left err -> fail (show err)
     Right (clauses, op, sym') ->
         let (sym'', stdlib') = run $ runSymbolTableState sym' (compileLib stdlib)
-            (sym''', clauses') = run $ runSymbolTableState sym'' (mapM compileClause clauses) in
-        return (stdlib' <> consolidateClauses clauses', op, sym''')
+            (sym''', clauses') = run $ runSymbolTableState sym'' (mapM compileClause clauses)
+            clauses'' = fmap replaceUnderscores' clauses' in
+        return (stdlib' <> consolidateClauses clauses'', op, sym''')
 
 getVMData :: SymbolTable -> (VMData, SymbolTable)
 getVMData sym = swap . run . runSymbolTableState sym $ compile

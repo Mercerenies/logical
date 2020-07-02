@@ -9,7 +9,7 @@ import Language.Logic.Tagged
 import Language.Logic.Number(Number(..))
 import Language.Logic.Error
 import Language.Logic.SymbolTable.Monad
-import qualified Language.Logic.Names as Names
+--import qualified Language.Logic.Names as Names
 import qualified Language.Logic.Util as Util
 
 import Polysemy
@@ -64,7 +64,7 @@ arithFunctions = Map.fromList [
 
 evalArithWith :: Member (Error RuntimeError) r => ArithFns -> Term -> Sem r Number
 evalArithWith _ (TermNum n) = pure n
-evalArithWith _ TermBlank = throw (VarsNotDone [Names.blankVar])
+--evalArithWith _ TermBlank = throw (VarsNotDone [Names.blankVar])
 evalArithWith _ (TermVar s) = throw (VarsNotDone [s])
 evalArithWith fns (TermCompound h ts) =
     case Map.lookup h fns of
@@ -76,7 +76,7 @@ evalArith = evalArithWith arithFunctions
 
 evalArithCWith :: Member (Error RuntimeError) r => ArithFnsC -> CTerm -> Sem r Number
 evalArithCWith _ (CTermNum n) = pure n
-evalArithCWith _ CTermBlank = throw (VarsNotDone [Names.blankVar])
+--evalArithCWith _ CTermBlank = throw (VarsNotDone [Names.blankVar])
 evalArithCWith _ (CTermVar s) = throw (VarsNotDone [s])
 evalArithCWith fns (CTermCompound (Tagged hname h) ts) =
     case Map.lookup h fns of

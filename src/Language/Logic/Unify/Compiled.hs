@@ -63,7 +63,7 @@ occursCheck (Assumptions m) = void $ Map.traverseWithKey go m
 
 subOnce :: Assumptions -> CTerm -> CTerm
 subOnce (Assumptions m) t = go t
-    where go CTermBlank = CTermBlank
+    where --go CTermBlank = CTermBlank
           go (CTermVar v)
               | Just t' <- Map.lookup v m = t'
               | otherwise = CTermVar v
@@ -81,8 +81,8 @@ doSubFact (CFact h ts) = CFact h <$> mapM doSub ts
 
 unify0 :: (Member AssumptionState r, Member (Error U.UnifyError) r) => CTerm -> CTerm -> Sem r CTerm
 unify0 a b | a == b = pure a
-unify0 CTermBlank b = pure b
-unify0 a CTermBlank = pure a
+--unify0 CTermBlank b = pure b
+--unify0 a CTermBlank = pure a
 unify0 (CTermVar a) (CTermVar b)
     | a < b = assume a (CTermVar b) >> pure (CTermVar b)
     | otherwise = assume b (CTermVar a) >> pure (CTermVar a)

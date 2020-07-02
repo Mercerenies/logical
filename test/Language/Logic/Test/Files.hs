@@ -6,6 +6,7 @@ import Language.Logic.Code
 import Language.Logic.Parser
 import Language.Logic.StdLib
 import Language.Logic.Compile
+import Language.Logic.Var(replaceUnderscores')
 import Language.Logic.SymbolTable
 import Language.Logic.SymbolTable.Monad
 import Language.Logic.Debug(DebugLevel(NoDebug))
@@ -33,7 +34,8 @@ runTestFile fpath = TestLabel fpath $ TestCase go
             (clauses, _, sym''') <- eitherToIO (tokenizeAndParse op sym'' fpath contents)
             let clauses' = consolidateClauses clauses
                 (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
-                body = prelude <> clauses''
+                clauses''' = mapClauses replaceUnderscores' clauses''
+                body = prelude <> clauses'''
             (_, results) <- runProgram vm sym'''' NoDebug body >>= eitherToIO
             assertBool ("Test file " ++ fpath) $ (results > 0)
 

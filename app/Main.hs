@@ -11,6 +11,7 @@ import Language.Logic.Compile
 import Language.Logic.CmdArgs
 import Language.Logic.SymbolTable
 import Language.Logic.SymbolTable.Monad
+import Language.Logic.Var(replaceUnderscores')
 
 import Polysemy
 
@@ -30,8 +31,9 @@ main = do
     Right (clauses, _, sym''') -> do
         let clauses' = consolidateClauses clauses
             (sym'''', clauses'') = run $ runSymbolTableState sym''' (compileBody clauses')
-            body = prelude <> clauses''
-        when cmdDebugKB $ print clauses'
+            clauses''' = mapClauses replaceUnderscores' clauses''
+            body = prelude <> clauses'''
+        when cmdDebugKB $ print clauses'''
         runProgram vm sym'''' cmdDebugLevel body >>= \case
           Left err -> print err >> exitFailure
           Right _ -> pure ()

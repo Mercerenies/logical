@@ -57,7 +57,7 @@ compoundTerm' :: Parser (String, [Term])
 compoundTerm' = block <|> compoundTerm
 
 term :: Parser Term
-term = variable <|>
+term = (TermVar <$> var) <|>
        (TermNum . fromInteger) <$> integer <|>
        (TermNum . NumRat) <$> ratio <|>
        (TermNum . NumFloat) <$> float <|>
@@ -73,14 +73,6 @@ term' = do
       terms = NonEmpty.fromList $ firstterms ++ restterms -- firstterms must be nonempty so this is safe
       result = Op.resolvePrec optable comp terms
   either (fail . show) pure result
-
-variable :: Parser Term
-variable = do
-  v <- var
-  if v == "_" then
-      return TermBlank
-  else
-      return (TermVar v)
 
 fact :: Parser Fact
 fact = term' >>= \case

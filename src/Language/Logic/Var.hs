@@ -27,3 +27,6 @@ replaceUnderscores (StdClause hd tl) =
           prefix = "_U"
           go x | x == Names.blankVar = CTermVar <$> safeFreshVar allVars prefix
                | otherwise = pure $ CTermVar x
+
+replaceUnderscores' :: Clause k CFact -> Clause k CFact
+replaceUnderscores' clause = run . runUniqueInt $ replaceUnderscores clause

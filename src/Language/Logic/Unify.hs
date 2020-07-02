@@ -64,7 +64,7 @@ occursCheck (Assumptions m) = void $ Map.traverseWithKey go m
 
 subOnce :: Assumptions -> Term -> Term
 subOnce (Assumptions m) t = go t
-    where go TermBlank = TermBlank
+    where --go TermBlank = TermBlank
           go (TermVar v)
               | Just t' <- Map.lookup v m = t'
               | otherwise = TermVar v
@@ -82,8 +82,8 @@ doSubFact (Fact h ts) = Fact h <$> mapM doSub ts
 
 unify0 :: (Member AssumptionState r, Member (Error UnifyError) r) => Term -> Term -> Sem r Term
 unify0 a b | a == b = pure a
-unify0 TermBlank b = pure b
-unify0 a TermBlank = pure a
+--unify0 TermBlank b = pure b
+--unify0 a TermBlank = pure a
 unify0 (TermVar a) (TermVar b)
     | a < b = assume a (TermVar b) >> pure (TermVar b)
     | otherwise = assume b (TermVar a) >> pure (TermVar a)

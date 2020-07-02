@@ -83,3 +83,6 @@ consolidateClauses = CodeBody . Util.classify clauseHead
 
 runEvalEff :: EvalCtx r => EvalEff a -> Sem r a
 runEvalEff (EvalEff a) = a
+
+mapClauses :: (Clause k f -> Clause k f') -> CodeBody k f -> CodeBody k f'
+mapClauses f (CodeBody m) = CodeBody (fmap (fmap f) m)
