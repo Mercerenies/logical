@@ -13,6 +13,7 @@ import Language.Logic.Error
 import Language.Logic.Tagged
 import Language.Logic.Compile
 import Language.Logic.Debug
+import Language.Logic.Var(freshVar)
 import Language.Logic.SymbolTable(SymbolTable())
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
@@ -38,13 +39,13 @@ errorToNonDet m = runError m >>= either (const mzero) pure
 errorToChoice :: forall e a r. Member Choice r => Sem (Error e ': r) a -> Sem r a
 errorToChoice = nonDetToChoice . errorToNonDet . raiseUnder
 
-freshVar :: Member (Unique Int) r => Sem r String
-freshVar = uniques (\n -> "_G" ++ show n)
+varPrefix :: String
+varPrefix = "_G"
 
 freshenClause :: Member (Unique Int) r => Clause String Fact -> Sem r (Clause String Fact)
 freshenClause (StdClause concl inner) = do
   let vars = freeVarsInFact concl ++ concatMap freeVarsInFact inner
-  freshVars <- replicateM (length vars) freshVar
+  freshVars <- replicateM (length vars) (freshVar varPrefix)
   let asm = Assumptions $ Map.fromList (zip vars $ fmap TermVar freshVars)
       concl' = subOnceInFact asm concl
       inner' = fmap (subOnceInFact asm) inner
@@ -54,7 +55,7 @@ freshenClause (PrimClause s p) = pure $ PrimClause s p
 freshenClauseC :: Member (Unique Int) r => CClause -> Sem r CClause
 freshenClauseC (StdClause concl inner) = do
   let vars = freeVarsInCFact concl ++ concatMap freeVarsInCFact inner
-  freshVars <- replicateM (length vars) freshVar
+  freshVars <- replicateM (length vars) (freshVar varPrefix)
   let asm = UC.Assumptions $ Map.fromList (zip vars $ fmap CTermVar freshVars)
       concl' = UC.subOnceInFact asm concl
       inner' = fmap (UC.subOnceInFact asm) inner
