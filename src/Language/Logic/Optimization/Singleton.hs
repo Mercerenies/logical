@@ -1,8 +1,7 @@
 
 module Language.Logic.Optimization.Singleton where
 
-import Language.Logic.Optimization
-import Language.Logic.Code
+--import Language.Logic.Code
 import Language.Logic.Term.Compiled
 
 import Control.Monad.Trans.Writer.CPS
@@ -10,15 +9,15 @@ import Control.Monad.Trans.Writer.CPS
 import Data.Map(Map)
 import qualified Data.Map as Map
 
-removeSingletons :: Ord k => Optimization m (Clause k CTerm) (Clause k CTerm)
-removeSingletons = Optimization undefined -- /////
-
 trackSingletons :: CFact -> SingletonTracker
 trackSingletons = snd . runWriter . traverseVarsInCFact go
     where go s = CTermVar s <$ tell (oneVar s)
 
 oneVar :: String -> SingletonTracker
 oneVar s = SingletonTracker (Map.singleton s IsSingleton)
+
+isSingleton :: String -> SingletonTracker -> Bool
+isSingleton s (SingletonTracker m) = Map.lookup s m == Just IsSingleton
 
 newtype SingletonTracker = SingletonTracker (Map String IsSingleton)
 
