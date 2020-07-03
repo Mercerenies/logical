@@ -14,6 +14,7 @@ import Language.Logic.Tagged
 import Language.Logic.Compile
 import Language.Logic.Debug
 import Language.Logic.Var(freshVar)
+import Language.Logic.GlobalVars(evalGlobalVarsUnique)
 import Language.Logic.SymbolTable(SymbolTable())
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.SymbolTable.Monad as SM
@@ -100,10 +101,10 @@ runProgram vm sym dbg body =
     runUniqueInt & -- TODO Swap this with the above line? Is it safe?
                    -- It would make the var numbers less insane.
     SM.runSymbolTableState sym &
+    evalGlobalVarsUnique &
     runLogMsg dbg &
     EM.evalToIO &
     runError @RuntimeError &
     embedToFinal &
     runFinal &
     fmap (second (second length))
-
