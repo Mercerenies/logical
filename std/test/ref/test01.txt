@@ -1,0 +1,9 @@
+
+main: {
+  refset(A, 100);
+  refget(A, N);
+  N = 100;
+  refget(A, 100);
+  refset(A, 200);
+  refget(A, 200);
+}.

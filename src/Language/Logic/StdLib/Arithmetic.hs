@@ -70,6 +70,7 @@ evalArithWith fns (TermCompound h ts) =
     case Map.lookup h fns of
       Nothing -> throw $ ArithmeticError $ "No such function " ++ show h
       Just f -> mapM (evalArithWith fns) ts >>= fromEither . f
+evalArithWith _ (t@(TermHandle _)) = throw (TypeError "number or compound term" t)
 
 evalArith :: Member (Error RuntimeError) r => Term -> Sem r Number
 evalArith = evalArithWith arithFunctions
@@ -82,6 +83,7 @@ evalArithCWith fns (CTermCompound (Tagged hname h) ts) =
     case Map.lookup h fns of
       Nothing -> throw $ ArithmeticError $ "No such function " ++ show hname
       Just f -> mapM (evalArithCWith fns) ts >>= fromEither . f
+evalArithCWith _ (t@(CTermHandle _)) = throw (TypeError "number or compound term" (ctermToTerm t))
 
 compileArith :: Member (SymbolTableState SymbolId) r => ArithFns -> Sem r ArithFnsC
 compileArith = Util.traverseKeys (intern . T.pack)

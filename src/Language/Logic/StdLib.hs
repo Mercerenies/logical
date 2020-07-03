@@ -6,6 +6,7 @@ import Language.Logic.Code
 import Language.Logic.Compile
 import Language.Logic.Term
 import Language.Logic.Term.Compiled
+import Language.Logic.Term.Handle
 import Language.Logic.Parser
 import Language.Logic.Parser.Op(OpTable(..))
 import Language.Logic.Choice
@@ -18,6 +19,7 @@ import Language.Logic.StdLib.Arithmetic
 import Language.Logic.VMData
 import Language.Logic.SymbolTable(SymbolTable())
 import Language.Logic.SymbolTable.Monad
+import Language.Logic.GlobalVars(defineGlobal, getGlobal, setGlobal)
 import Language.Logic.StdLib.TypeOf(typeOf')
 import Language.Logic.Var(replaceUnderscores')
 import qualified Language.Logic.Eval.Monad as EM
@@ -82,6 +84,21 @@ block (CFact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
 typeOfValue :: EvalCtx' r => CFact -> Sem r ()
 typeOfValue = arg2 >=> \(term, tyvar) ->
               typeOf' term >>= \ty -> errorToChoice . void $ subAndUnify tyvar ty
+
+refget :: EvalCtx' r => CFact -> Sem r ()
+refget = arg2 >=> \(h, v) ->
+         case h of
+           CTermHandle (HandleRef h') -> do
+                  t <- getGlobal h'
+                  errorToChoice . void $ subAndUnify v t
+           _ -> throw (TypeError "reference handle" $ ctermToTerm h)
+
+refset :: EvalCtx' r => CFact -> Sem r ()
+refset = arg2 >=> \(h, v) ->
+         case h of
+           CTermHandle (HandleRef h') -> setGlobal h' $! v
+           CTermVar _ -> defineGlobal v >>= \v' -> errorToChoice . void $ subAndUnify h (CTermHandle (HandleRef v'))
+           _ -> throw (TypeError "reference handle or variable" $ ctermToTerm h)
 
 -- add takes three arguments. At least two must be ground. If all
 -- three are ground, it verifies that the first two sum to the third.
@@ -189,6 +206,12 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("type_of", [
             PrimClause "type_of" (builtinToPrim typeOfValue)
+           ]),
+          ("refget", [
+            PrimClause "refget" (builtinToPrim refget)
+           ]),
+          ("refset", [
+            PrimClause "refset" (builtinToPrim refset)
            ])
          ]
 

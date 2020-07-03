@@ -3,6 +3,7 @@
 module Language.Logic.Term.Compiled where
 
 import Language.Logic.Term
+import Language.Logic.Term.Handle
 import Language.Logic.Tagged
 import Language.Logic.Number(Number(..))
 import Language.Logic.SymbolTable.Monad
@@ -13,6 +14,7 @@ import qualified Data.Text as T
 data CTerm = CTermVar String
            | CTermNum Number
            | CTermCompound (Tagged Atom SymbolId) [CTerm]
+           | CTermHandle Handle
              deriving (Eq, Ord)
 
 data CFact = CFact (Tagged Atom SymbolId) [CTerm]
@@ -29,6 +31,7 @@ ctermToTerm :: CTerm -> Term
 ctermToTerm (CTermVar s) = TermVar s
 ctermToTerm (CTermNum n) = TermNum n
 ctermToTerm (CTermCompound (Tagged (Atom h) _) ts) = TermCompound h $ fmap ctermToTerm ts
+ctermToTerm (CTermHandle h) = TermHandle h
 
 cfactToFact :: CFact -> Fact
 cfactToFact (CFact (Tagged (Atom h) _) ts) = Fact h $ fmap ctermToTerm ts
@@ -45,6 +48,7 @@ compileTerm (TermNum n) = pure (CTermNum n)
 compileTerm (TermCompound h ts) = CTermCompound <$> h' <*> ts'
     where h' = Tagged (Atom h) <$> intern (T.pack h)
           ts' = mapM compileTerm ts
+compileTerm (TermHandle h) = pure (CTermHandle h)
 
 compileFact :: Member (SymbolTableState SymbolId) r => Fact -> Sem r CFact
 compileFact (Fact h ts) = CFact <$> h' <*> ts'
@@ -55,6 +59,7 @@ freeVarsC :: CTerm -> [String]
 freeVarsC (CTermVar s) = [s]
 freeVarsC (CTermNum {}) = []
 freeVarsC (CTermCompound _ ts) = concatMap freeVarsC ts
+freeVarsC (CTermHandle {}) = []
 
 freeVarsInCFact :: CFact -> [String]
 freeVarsInCFact (CFact _ xs) = concatMap freeVarsC xs
@@ -64,6 +69,7 @@ traverseVarsC f = go
     where go (CTermVar s) = f s
           go (CTermNum n) = pure (CTermNum n)
           go (CTermCompound s args) = CTermCompound s <$> traverse go args
+          go (CTermHandle h) = pure (CTermHandle h)
 
 traverseVarsInCFact :: Applicative f => (String -> f CTerm) -> CFact -> f CFact
 traverseVarsInCFact f (CFact h ts) = CFact h <$> traverse (traverseVarsC f) ts

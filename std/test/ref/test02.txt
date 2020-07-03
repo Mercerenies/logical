@@ -1,0 +1,16 @@
+
+add_one(X): {
+  refget(X, N);
+  N1 =: N + 1;
+  refset(X, N1);
+}.
+
+succeed_thrice(1).
+succeed_thrice(2).
+succeed_thrice(3).
+
+main: {
+  refset(X, 0);
+  { succeed_thrice(_); add_one(X); fail; } || true; # Do some branching
+  refget(X, 3);
+}.
