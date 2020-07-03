@@ -8,4 +8,8 @@ main: {
   compound(foo);
   compound(foo(a, b, c));
   atom(foo);
+
+  refset(R, 0);
+  handle(R);
+  ref(R);
 }.

@@ -8,4 +8,8 @@ main: {
   type_of(_, variable);
   type_of(B, C);
   C = variable;
+
+  refset(R, 0);
+  type_of(R, handle(ref));
+
 }.

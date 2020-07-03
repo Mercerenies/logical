@@ -22,4 +22,8 @@ main: {
   nonvar(X);
   nonvar(Y);
 
+  var(R);
+  refset(R, 10);
+  nonvar(R);
+
 }.

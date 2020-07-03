@@ -65,6 +65,8 @@ ratio(X): type_of(X, number(ratio)).
 float(X): type_of(X, number(float)).
 compound(X): type_of(X, compound(_, _)).
 atom(X): type_of(X, compound(_, 0)).
+ref(X): type_of(X, handle(ref)).
+handle(X): type_of(X, handle(_)).
 # TODO Test for integer once we can extract num and denom from a ratio
 
 # List predicates

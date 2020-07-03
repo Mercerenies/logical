@@ -6,4 +6,7 @@ main: {
   nonvar(10.0);
   nonvar(foo);
   nonvar(foo(a, b, c));
+
+  refset(R, 0);
+  nonvar(R);
 }.
