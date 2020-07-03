@@ -18,6 +18,12 @@ data GlobalVars k v m a where
 
 makeSem ''GlobalVars
 
+modifyGlobal :: MemberWithError (GlobalVars k v) r => k -> (v -> v) -> Sem r ()
+modifyGlobal k f = getGlobal k >>= \v -> setGlobal k $ f v
+
+modifyGlobal' :: MemberWithError (GlobalVars k v) r => k -> (v -> v) -> Sem r ()
+modifyGlobal' k f = getGlobal k >>= \v -> setGlobal k $! f v
+
 runGlobalVarsAction :: (Hashable k, Eq k) =>
                        Sem r k -> HashMap k v -> Sem (GlobalVars k v ': r) a -> Sem r (HashMap k v, a)
 runGlobalVarsAction gensym init_ = runState init_ . reinterpret
