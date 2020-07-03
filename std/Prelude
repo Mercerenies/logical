@@ -1,3 +1,4 @@
+# -*- Text -*-
 
 operator  infix || :  left 10.
 operator  infix && :  left 20.
