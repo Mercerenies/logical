@@ -82,6 +82,15 @@ atom(X): type_of(X, compound(_, 0)).
 ref(X): type_of(X, handle(ref)).
 handle(X): type_of(X, handle(_)).
 
+# Note: rational is a pseudo-type-test and is designed to extract
+# information from rational numbers, not construct them. If your
+# goal is to construct a rational number, you should be using
+# X =: 2 / 4 instead, or simply using a rational literal such
+# as X = 2r4.
+rational(X, N, D): type_of(X, number(ratio(N, D))).
+numerator(X, N): rational(X, N, _).
+denominator(X, D): rational(X, _, D).
+
 # List predicates
 map(_, []).
 map(F, X :: XS): {

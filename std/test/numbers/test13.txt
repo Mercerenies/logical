@@ -1,0 +1,26 @@
+
+main: {
+
+  rational(1r2, 1, 2);
+  Y = 1r2;
+  rational(Y, 1, 2);
+
+  Z = -3r9;
+  rational(Z, N, D);
+  N = -1;
+  D = 3;
+  numerator(Z, -1);
+  denominator(Z, 3);
+
+  not(rational(_, 1, 2)); # Should fail because rational is not a constructor.
+
+  T =: 2 / 4;
+  numerator(T, 1);
+  denominator(T, 2);
+
+  U = 6;
+  rational(U, 6, D1);
+  D1 = 1;
+
+  rational(0, 0, 1);
+}.
