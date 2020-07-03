@@ -11,18 +11,20 @@ import Language.Logic.Number
 
 import Polysemy
 
+import Data.Ratio(numerator, denominator)
+
 data TermType = TyVar | TyNum TermNumType | TyCompound (Tagged Atom SymbolId) Int | TyHandle TermHandleType
                 deriving (Show, Eq)
 
-data TermNumType = TyRatio | TyFloat
-                   deriving (Show, Read, Eq, Ord, Enum)
+data TermNumType = TyRatio Integer Integer | TyFloat
+                   deriving (Show, Read, Eq, Ord)
 
 data TermHandleType = TyRef
                       deriving (Show, Read, Eq, Ord, Enum)
 
 typeOf :: CTerm -> TermType
 typeOf (CTermVar _) = TyVar
-typeOf (CTermNum (NumRat _)) = TyNum TyRatio
+typeOf (CTermNum (NumRat r)) = TyNum (TyRatio (numerator r) (denominator r))
 typeOf (CTermNum (NumFloat _)) = TyNum TyFloat
 typeOf (CTermCompound hd tl) = TyCompound hd (length tl)
 typeOf (CTermHandle (HandleRef _)) = TyHandle TyRef
@@ -30,7 +32,8 @@ typeOf (CTermHandle (HandleRef _)) = TyHandle TyRef
 typeToTerm :: Member (SymbolTableState SymbolId) r => TermType -> Sem r CTerm
 typeToTerm TyVar = atom "variable"
 typeToTerm (TyNum t) = compound' "number" [case t of
-                                             TyRatio -> atom "ratio"
+                                             TyRatio n d -> compound "ratio" [CTermNum (fromIntegral n),
+                                                                              CTermNum (fromIntegral d)]
                                              TyFloat -> atom "float"]
 typeToTerm (TyCompound hd n) = compound "compound" [CTermCompound hd [], CTermNum (fromIntegral n)]
 typeToTerm (TyHandle t) = compound' "handle" [case t of

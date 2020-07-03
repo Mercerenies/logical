@@ -1,13 +1,22 @@
 
 main: {
   var(A);
+  integer(10);
   ratio(10);
   number(10);
+  ratio(10r4);
+  number(10r4);
   float(10.0);
   number(10.0);
   compound(foo);
   compound(foo(a, b, c));
   atom(foo);
+
+  not(integer(10r4));
+  not(integer(10.0));
+  not(ratio(10.0));
+  not(float(10));
+  not(float(10r4));
 
   refset(R, 0);
   handle(R);
