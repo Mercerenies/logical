@@ -5,6 +5,7 @@ module Language.Logic.Term(Term(..), Fact(..), Atom(..),
                            traverseVars, traverseVarsInFact) where
 
 import qualified Language.Logic.Util as Util
+import qualified Language.Logic.Names as Names
 import Language.Logic.Number(Number(..))
 
 import Data.Char
@@ -23,6 +24,7 @@ newtype Atom = Atom String
 instance Show Term where
     showsPrec _ (TermVar v) = (v ++)
     showsPrec _ (TermNum n) = shows n
+    showsPrec _ (xs@ TermCompound {}) | Just xs' <- toProperList xs = shows xs'
     showsPrec _ (TermCompound s args) = showsAtomic s . ("(" ++) . args' . (")" ++)
         where args' = Util.sepBy ("," ++) $ fmap shows args
 
@@ -31,6 +33,13 @@ instance Show Fact where
 
 instance Show Atom where
     showsPrec _ (Atom s) = showsAtomic s
+
+-- TODO If we end up supporting cyclic lists, we'll need to modify
+-- this to detect them.
+toProperList :: Term -> Maybe [Term]
+toProperList (TermCompound x []) | x == Names.emptyList = Just []
+toProperList (TermCompound x [a, b]) | x == Names.consList = (a :) <$> toProperList b
+toProperList _ = Nothing
 
 isStdAtom :: String -> Bool
 isStdAtom [] = False
