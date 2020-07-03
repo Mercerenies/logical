@@ -1,0 +1,9 @@
+
+# TODO This only works a few times right now before
+# hanging (hence the once call in the test). I would
+# think we can get a 100% bidirectional concat, but I'm
+# not certain.
+main: {
+  once(concat(X, [1, 2]));
+  X = [[1, 2]];
+}.

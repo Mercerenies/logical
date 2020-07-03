@@ -1,0 +1,6 @@
+
+main: {
+  member(A, [1]);
+  A = 1;
+  not(member(_, []));
+}.

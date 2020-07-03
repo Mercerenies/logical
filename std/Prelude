@@ -123,3 +123,13 @@ length(_ :: XS, N): {
   N1 =: N - 1;
   length(XS, N1);
 }.
+
+member(X, X :: _).
+member(X, _ :: XS):
+  member(X, XS).
+
+concat([], []).
+concat(XS :: XSS, YS): {
+  concat(XSS, ZS);
+  append(XS, ZS, YS);
+}.
