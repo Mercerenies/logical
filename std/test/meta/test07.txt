@@ -1,0 +1,17 @@
+
+num(1).
+num(2).
+num(3).
+
+cross(X, Y): {
+  num(X);
+  num(Y);
+  X <= Y;
+}.
+
+main: {
+  count(cross(_, _), 6);
+  count(cross(N, N), 3);
+  count(cross(1, _), 3);
+  count(cross(_, 1), 1);
+}.

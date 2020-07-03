@@ -1,0 +1,10 @@
+
+pred(foo).
+pred(bar).
+pred(baz).
+
+main: {
+  count(pred(_)  , 3);
+  count(pred(bar), 1);
+  count(pred(0)  , 0);
+}.

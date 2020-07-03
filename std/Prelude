@@ -47,6 +47,18 @@ A || B:
 A || B:
   call(B).
 
+# Counts the number of ways the value is true.
+count(F, M): {
+  refset(Counter, 0);
+  {
+    call(F);
+    refget(Counter, N);
+    N1 =: N + 1;
+    refset(Counter, N1);
+  } || true;
+  refget(Counter, M);
+}.
+
 # Comparison operators
 A <  B: guard(A <  B).
 A >  B: guard(A >  B).
