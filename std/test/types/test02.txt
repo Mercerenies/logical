@@ -8,6 +8,7 @@ main: {
   number(10r4);
   float(10.0);
   number(10.0);
+  string("ABC");
   compound(foo);
   compound(foo(a, b, c));
   atom(foo);

@@ -77,6 +77,7 @@ number(X): type_of(X, number(_)).
 integer(X): type_of(X, number(ratio(_, 1))).
 ratio(X): type_of(X, number(ratio(_, _))).
 float(X): type_of(X, number(float)).
+string(X): type_of(X, string).
 compound(X): type_of(X, compound(_, _)).
 atom(X): type_of(X, compound(_, 0)).
 ref(X): type_of(X, handle(ref)).

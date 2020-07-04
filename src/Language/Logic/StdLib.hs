@@ -24,6 +24,7 @@ import Language.Logic.StdLib.TypeOf(typeOf')
 import Language.Logic.Var(replaceUnderscores')
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.Util as Util
+--import qualified Language.Logic.StdLib.String as StdLibString
 
 import Polysemy
 import Polysemy.NonDet
@@ -67,6 +68,10 @@ assertCompound :: EvalCtx' r => CTerm -> Sem r CFact
 assertCompound (CTermCompound f xs) = pure $ CFact f xs
 assertCompound t = throw (TypeError "compound term" (ctermToTerm t))
 
+assertString :: EvalCtx' r => CTerm -> Sem r T.Text
+assertString (CTermString t) = pure t
+assertString term = throw (TypeError "string" (ctermToTerm term))
+
 builtinToPrim :: forall a. (forall r. EvalCtx' r => CFact -> Sem r a) -> (CFact -> EvalEff a)
 builtinToPrim g = \fct -> EvalEff $ nonDetToChoice (g fct)
 
@@ -74,9 +79,7 @@ writeTerm :: EvalCtx' r => CFact -> Sem r ()
 writeTerm = arg1 >=> \t -> EM.writeOut (shows t "\n")
 
 writeString :: EvalCtx' r => CFact -> Sem r ()
-writeString = arg1 >=> \case
-              CTermString t -> EM.writeOut (T.unpack t)
-              term -> throw (TypeError "string" (ctermToTerm term))
+writeString = arg1 >=> assertString >=> \t -> EM.writeOut (T.unpack t)
 
 fail_ :: EvalCtx' r => CFact -> Sem r ()
 fail_ _ = mzero

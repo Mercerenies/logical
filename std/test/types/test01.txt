@@ -4,6 +4,7 @@ main: {
   type_of(10, number(ratio(10, 1)));
   type_of(-10r4, number(ratio(-5, 2)));
   type_of(10.0, number(float));
+  type_of("ABC", string);
   type_of(foo, compound(foo, 0));
   type_of(foo(a, b, c), compound(foo, 3));
   type_of(_, variable);

@@ -3,6 +3,7 @@ main: {
   nonvar(10);
   nonvar(10.0);
   nonvar(10r4);
+  nonvar("ABC");
   nonvar(foo);
   nonvar(foo(a, b, c));
 
