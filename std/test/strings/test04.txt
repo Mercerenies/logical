@@ -1,0 +1,6 @@
+
+main: {
+  count(string_concat(A, A, "ABCDABCD"), 1);
+  string_concat(A, A, "ABCDABCD");
+  A = "ABCD";
+}.

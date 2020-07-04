@@ -23,7 +23,9 @@ removeSuffix needle haystack
     | T.isSuffixOf needle haystack = Just $ T.dropEnd (T.length needle) haystack
     | otherwise = Nothing
 
--- TODO Support (-,-,+) as Prolog does
+allSplits :: T.Text -> [(T.Text, T.Text)]
+allSplits t = fmap (\n -> T.splitAt n t) [0..T.length t]
+
 stringConcat :: EvalCtx' r => CFact -> Sem r ()
 stringConcat = arg3 >=> \case
                (CTermString a, CTermString b, c) ->
@@ -32,6 +34,8 @@ stringConcat = arg3 >=> \case
                    Util.hoistMaybe (removePrefix a c) >>= \s -> unify (CTermString s) b
                (a, CTermString b, CTermString c) ->
                    Util.hoistMaybe (removeSuffix b c) >>= \s -> unify (CTermString s) a
+               (a, b, CTermString c) ->
+                   Util.oneOf $ fmap (\(a', b') -> unify (CTermString a') a >> unify (CTermString b') b) (allSplits c)
                -- Error cases below
                (a, b, c)
                    | invalid a -> throw (TypeError "variable or string" $ ctermToTerm a)

@@ -1,0 +1,3 @@
+
+main:
+  count(string_concat(_, _, "ABCD"), 5).
