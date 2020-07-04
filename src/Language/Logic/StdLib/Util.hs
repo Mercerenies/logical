@@ -3,12 +3,14 @@
 module Language.Logic.StdLib.Util(EvalCtx',
                                   arg0, arg1, arg2, arg3,
                                   argsForCall, assertCompound, assertString,
-                                  builtinToPrim) where
+                                  builtinToPrim, unify) where
 
 import Language.Logic.Term.Compiled
+import Language.Logic.Unify.Compiled
 import Language.Logic.Code
 import Language.Logic.Choice
 import Language.Logic.Error
+import Language.Logic.Eval
 
 import Polysemy
 import Polysemy.NonDet
@@ -54,3 +56,6 @@ assertString term = throw (TypeError "string" (ctermToTerm term))
 
 builtinToPrim :: forall a. (forall r. EvalCtx' r => CFact -> Sem r a) -> (CFact -> EvalEff a)
 builtinToPrim g = \fct -> EvalEff $ nonDetToChoice (g fct)
+
+unify :: (Member AssumptionState r, Member NonDet r) => CTerm -> CTerm -> Sem r ()
+unify a b = errorToNonDet . void $ subAndUnify a b

@@ -13,7 +13,6 @@ import Language.Logic.Number(Number())
 import Language.Logic.Error
 import Language.Logic.Eval
 import Language.Logic.Tagged
-import Language.Logic.Unify.Compiled
 import Language.Logic.StdLib.Arithmetic
 import Language.Logic.StdLib.Util
 import Language.Logic.VMData
@@ -53,21 +52,21 @@ block (CFact _ xs) = mapM assertCompound xs >>= mapM_ evalGoal
 
 typeOfValue :: EvalCtx' r => CFact -> Sem r ()
 typeOfValue = arg2 >=> \(term, tyvar) ->
-              typeOf' term >>= \ty -> errorToChoice . void $ subAndUnify tyvar ty
+              typeOf' term >>= \ty -> unify tyvar ty
 
 refget :: EvalCtx' r => CFact -> Sem r ()
 refget = arg2 >=> \(h, v) ->
          case h of
            CTermHandle (HandleRef h') -> do
                   t <- getGlobal h'
-                  errorToChoice . void $ subAndUnify v t
+                  unify v t
            _ -> throw (TypeError "reference handle" $ ctermToTerm h)
 
 refset :: EvalCtx' r => CFact -> Sem r ()
 refset = arg2 >=> \(h, v) ->
          case h of
            CTermHandle (HandleRef h') -> setGlobal h' $! v
-           CTermVar _ -> defineGlobal v >>= \v' -> errorToChoice . void $ subAndUnify h (CTermHandle (HandleRef v'))
+           CTermVar _ -> defineGlobal v >>= \v' -> unify h (CTermHandle (HandleRef v'))
            _ -> throw (TypeError "reference handle or variable" $ ctermToTerm h)
 
 -- add takes three arguments. At least two must be ground. If all
@@ -79,11 +78,11 @@ add :: EvalCtx' r => CFact -> Sem r ()
 add = arg3 >=> \case
       (CTermNum   a, CTermNum   b, CTermNum   c) -> guard (a + b == c)
       (CTermIsVar a, CTermNum   b, CTermNum   c) ->
-          errorToChoice . void $ subAndUnify (CTermIsVar a) (CTermNum (c - b))
+          unify (CTermIsVar a) (CTermNum (c - b))
       (CTermNum   a, CTermIsVar b, CTermNum   c) ->
-          errorToChoice . void $ subAndUnify (CTermIsVar b) (CTermNum (c - a))
+          unify (CTermIsVar b) (CTermNum (c - a))
       (CTermNum   a, CTermNum   b, CTermIsVar c) ->
-          errorToChoice . void $ subAndUnify (CTermIsVar c) (CTermNum (a + b))
+          unify (CTermIsVar c) (CTermNum (a + b))
       -- Beyond this, there's an error. We just need to decide which error
       (a, b, c)
           | invalid a -> throw (TypeError "variable or number" $ ctermToTerm a)
@@ -104,11 +103,11 @@ mul :: EvalCtx' r => CFact -> Sem r ()
 mul = arg3 >=> \case
       (CTermNum   a, CTermNum   b, CTermNum   c) -> guard (a * b == c)
       (CTermIsVar a, CTermNum   b, CTermNum   c) ->
-          errorToChoice . void $ subAndUnify (CTermIsVar a) (CTermNum (c / b))
+          unify (CTermIsVar a) (CTermNum (c / b))
       (CTermNum   a, CTermIsVar b, CTermNum   c) ->
-          errorToChoice . void $ subAndUnify (CTermIsVar b) (CTermNum (c / a))
+          unify (CTermIsVar b) (CTermNum (c / a))
       (CTermNum   a, CTermNum   b, CTermIsVar c) ->
-          errorToChoice . void $ subAndUnify (CTermIsVar c) (CTermNum (a * b))
+          unify (CTermIsVar c) (CTermNum (a * b))
       -- Beyond this, there's an error. We just need to decide which error
       (a, b, c)
           | invalid a -> throw (TypeError "variable or number" $ ctermToTerm a)
@@ -125,7 +124,7 @@ evalArith' :: (Member (Error RuntimeError) r, Member VMEnv r) => CTerm -> Sem r 
 evalArith' t = getArithmetic >>= \arith -> evalArithCWith arith t
 
 arithEval :: EvalCtx' r => CFact -> Sem r ()
-arithEval = arg2 >=> \(x, t) -> evalArith' t >>= errorToChoice . void . subAndUnify x . CTermNum
+arithEval = arg2 >=> \(x, t) -> evalArith' t >>= unify x . CTermNum
 
 -- Evaluates the arithmetic expression. If the result is zero, this
 -- predicate fails. If not, the predicate succeeds once without
