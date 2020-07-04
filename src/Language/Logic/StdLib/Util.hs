@@ -3,7 +3,8 @@
 module Language.Logic.StdLib.Util(EvalCtx',
                                   arg0, arg1, arg2, arg3,
                                   argsForCall, assertCompound, assertString,
-                                  builtinToPrim, unify) where
+                                  builtinToPrim, unify,
+                                  expectingError) where
 
 import Language.Logic.Term.Compiled
 import Language.Logic.Unify.Compiled
@@ -59,3 +60,19 @@ builtinToPrim g = \fct -> EvalEff $ nonDetToChoice (g fct)
 
 unify :: (Member AssumptionState r, Member NonDet r) => CTerm -> CTerm -> Sem r ()
 unify a b = errorToNonDet . void $ subAndUnify a b
+
+-- This always throws a runtime error. It determines which runtime
+-- error to throw as follows.
+--
+-- 1. If any of the terms fail to satisfy the valid predicate, then
+--    the error will be a type error referencing the first term which
+--    fails.
+-- 2. If all terms satisfy the valid predicate, then a vars-not-done
+--    error will be thrown, where all terms which are variables are
+--    included in the error list.
+expectingError :: Member (Error RuntimeError) r => (CTerm -> Bool) -> String -> [CTerm] -> Sem r b
+expectingError valid expecting terms = do
+  forM_ terms $ \t -> unless (valid t) $ throw (TypeError expecting (ctermToTerm t))
+  throw (VarsNotDone $ concatMap varOf terms)
+      where varOf (CTermIsVar v) = [v]
+            varOf _ = []

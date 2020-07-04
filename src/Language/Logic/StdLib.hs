@@ -83,17 +83,10 @@ add = arg3 >=> \case
           unify (CTermIsVar b) (CTermNum (c - a))
       (CTermNum   a, CTermNum   b, CTermIsVar c) ->
           unify (CTermIsVar c) (CTermNum (a + b))
-      -- Beyond this, there's an error. We just need to decide which error
-      (a, b, c)
-          | invalid a -> throw (TypeError "variable or number" $ ctermToTerm a)
-          | invalid b -> throw (TypeError "variable or number" $ ctermToTerm b)
-          | invalid c -> throw (TypeError "variable or number" $ ctermToTerm c)
-          | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
-    where invalid (CTermVar _) = False
-          invalid (CTermNum _) = False
-          invalid _ = True
-          varOf (CTermIsVar v) = [v]
-          varOf _ = []
+      (a, b, c) -> expectingError valid "variable or number" [a, b, c]
+    where valid (CTermVar _) = True
+          valid (CTermNum _) = True
+          valid _ = False
 
 -- mul operates like add in terms of requiring all arguments to be
 -- either numbers or variables and requiring at least two ground
@@ -108,17 +101,10 @@ mul = arg3 >=> \case
           unify (CTermIsVar b) (CTermNum (c / a))
       (CTermNum   a, CTermNum   b, CTermIsVar c) ->
           unify (CTermIsVar c) (CTermNum (a * b))
-      -- Beyond this, there's an error. We just need to decide which error
-      (a, b, c)
-          | invalid a -> throw (TypeError "variable or number" $ ctermToTerm a)
-          | invalid b -> throw (TypeError "variable or number" $ ctermToTerm b)
-          | invalid c -> throw (TypeError "variable or number" $ ctermToTerm c)
-          | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
-    where invalid (CTermVar _) = False
-          invalid (CTermNum _) = False
-          invalid _ = True
-          varOf (CTermIsVar v) = [v]
-          varOf _ = []
+      (a, b, c) -> expectingError valid "variable or number" [a, b, c]
+    where valid (CTermVar _) = True
+          valid (CTermNum _) = True
+          valid _ = False
 
 evalArith' :: (Member (Error RuntimeError) r, Member VMEnv r) => CTerm -> Sem r Number
 evalArith' t = getArithmetic >>= \arith -> evalArithCWith arith t

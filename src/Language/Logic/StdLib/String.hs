@@ -3,13 +3,11 @@
 module Language.Logic.StdLib.String(stringConcat, stringLength) where
 
 import Language.Logic.StdLib.Util
-import Language.Logic.Error
 import Language.Logic.Term.Compiled
 import qualified Language.Logic.Util as Util
 
 import qualified Data.Text as T
 import Polysemy
-import Polysemy.Error
 
 import Control.Monad
 
@@ -36,17 +34,10 @@ stringConcat = arg3 >=> \case
                    Util.hoistMaybe (removeSuffix b c) >>= \s -> unify (CTermString s) a
                (a, b, CTermString c) ->
                    Util.oneOf $ fmap (\(a', b') -> unify (CTermString a') a >> unify (CTermString b') b) (allSplits c)
-               -- Error cases below
-               (a, b, c)
-                   | invalid a -> throw (TypeError "variable or string" $ ctermToTerm a)
-                   | invalid b -> throw (TypeError "variable or string" $ ctermToTerm b)
-                   | invalid c -> throw (TypeError "variable or string" $ ctermToTerm c)
-                   | otherwise -> throw (VarsNotDone $ concatMap varOf [a, b, c])
-    where invalid (CTermVar _) = False
-          invalid (CTermString _) = False
-          invalid _ = True
-          varOf (CTermIsVar v) = [v]
-          varOf _ = []
+               (a, b, c) -> expectingError valid "variable or string" [a, b, c]
+    where valid (CTermVar _) = True
+          valid (CTermString _) = True
+          valid _ = False
 
 stringLength :: EvalCtx' r => CFact -> Sem r ()
 stringLength = arg2 >=> \(s, n) -> assertString s >>=
