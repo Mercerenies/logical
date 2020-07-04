@@ -1,0 +1,9 @@
+
+main: {
+  string_concat("ABC", X, "ABCDEF");
+  X = "DEF";
+  string_concat(Y, "DEF", "ABCDEF");
+  Y = "ABC";
+  not( string_concat(_, "DEFF", "ABCDEF") );
+  not( string_concat("AABC", _, "ABCDEF") );
+}.

@@ -1,0 +1,8 @@
+
+main: {
+  string_concat("", "DEF", "DEF");
+  string_concat("ABC", "", "ABC");
+  string_concat("ABC", "DEF", "ABCDEF");
+  string_concat("ABC", "DEF", X);
+  X = "ABCDEF";
+}.

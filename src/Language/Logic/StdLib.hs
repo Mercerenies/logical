@@ -23,7 +23,7 @@ import Language.Logic.StdLib.TypeOf(typeOf')
 import Language.Logic.Var(replaceUnderscores')
 import qualified Language.Logic.Eval.Monad as EM
 import qualified Language.Logic.Util as Util
---import qualified Language.Logic.StdLib.String as StdString
+import qualified Language.Logic.StdLib.String as Stdlib.String
 
 import Polysemy
 import Polysemy.Error
@@ -184,6 +184,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("refset", [
             PrimClause "refset" (builtinToPrim refset)
+           ]),
+          ("string_concat", [
+            PrimClause "string_concat" (builtinToPrim Stdlib.String.stringConcat)
            ])
          ]
 
