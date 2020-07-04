@@ -1,5 +1,5 @@
 
-module Language.Logic.SymbolTable.Monad(SymbolTableState(..), SymbolId, intern,
+module Language.Logic.SymbolTable.Monad(SymbolTableState(..), SymbolId, intern, lookup,
                                         runSymbolTableState, evalSymbolTableState,
                                         runSymbolTableStateTrivially) where
 
@@ -10,14 +10,18 @@ import Polysemy
 import Polysemy.State
 import qualified Data.Text as T
 
+import Prelude hiding (lookup)
+
 data SymbolTableState i m a where
     Intern :: T.Text -> SymbolTableState i m i
+    Lookup :: i -> SymbolTableState i m (Maybe T.Text)
 
 makeSem ''SymbolTableState
 
 runSymbolTableStateTrivially :: Sem (SymbolTableState T.Text ': r) a -> Sem r a
 runSymbolTableStateTrivially = interpret $ \case
                                Intern s -> pure s
+                               Lookup s -> pure (Just s)
 
 runSymbolTableState :: SymbolTable -> Sem (SymbolTableState SymbolId ': r) a -> Sem r (SymbolTable, a)
 runSymbolTableState table0 = runLazyState table0 . toState
@@ -32,3 +36,4 @@ toState = reinterpret $ \case
             let (i, table') = SymbolTable.intern t table
             put $! table'
             return i
+          Lookup i -> gets (SymbolTable.lookup i)
