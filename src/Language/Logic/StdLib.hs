@@ -28,6 +28,7 @@ import qualified Language.Logic.Util as Util
 import Polysemy
 import Polysemy.NonDet
 import Polysemy.Error
+import qualified Data.Text as T
 
 import Control.Monad
 import Control.Applicative
@@ -64,13 +65,18 @@ argsForCall (CFact _ (t : _)) = throw (TypeError "compound term" (ctermToTerm t)
 
 assertCompound :: EvalCtx' r => CTerm -> Sem r CFact
 assertCompound (CTermCompound f xs) = pure $ CFact f xs
-assertCompound t = throw (TypeError "compoundCTerm" (ctermToTerm t))
+assertCompound t = throw (TypeError "compound term" (ctermToTerm t))
 
 builtinToPrim :: forall a. (forall r. EvalCtx' r => CFact -> Sem r a) -> (CFact -> EvalEff a)
 builtinToPrim g = \fct -> EvalEff $ nonDetToChoice (g fct)
 
 writeTerm :: EvalCtx' r => CFact -> Sem r ()
 writeTerm = arg1 >=> \t -> EM.writeOut (shows t "\n")
+
+writeString :: EvalCtx' r => CFact -> Sem r ()
+writeString = arg1 >=> \case
+              CTermString t -> EM.writeOut (T.unpack t)
+              term -> throw (TypeError "string" (ctermToTerm term))
 
 fail_ :: EvalCtx' r => CFact -> Sem r ()
 fail_ _ = mzero
@@ -179,6 +185,9 @@ stdlib :: CodeBody String CFact
 stdlib = CodeBody $ Map.fromList [
           ("write_term", [
             PrimClause "write_term" (builtinToPrim writeTerm)
+           ]),
+          ("write_string", [
+            PrimClause "write_string" (builtinToPrim writeString)
            ]),
           ("fail", [
             PrimClause "fail" (builtinToPrim fail_)

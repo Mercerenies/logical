@@ -2,4 +2,6 @@
 main: {
   A = "ABC\nDEF";
   write_term(A);
+  write_string(A);
+  #write_string(9);
 }.
