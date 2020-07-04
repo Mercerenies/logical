@@ -69,6 +69,7 @@ subOnce (Assumptions m) t = go t
               | otherwise = CTermVar v
           go (CTermCompound s ts) = CTermCompound s (fmap go ts)
           go (CTermNum n) = CTermNum n
+          go (CTermString txt) = CTermString txt
           go (CTermHandle h) = CTermHandle h
 
 subOnceInFact :: Assumptions -> CFact -> CFact

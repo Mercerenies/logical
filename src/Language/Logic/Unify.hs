@@ -70,6 +70,7 @@ subOnce (Assumptions m) t = go t
               | otherwise = TermVar v
           go (TermCompound s ts) = TermCompound s (fmap go ts)
           go (TermNum n) = TermNum n
+          go (TermString txt) = TermString txt
           go (TermHandle h) = TermHandle h
 
 subOnceInFact :: Assumptions -> Fact -> Fact

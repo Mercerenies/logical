@@ -13,6 +13,7 @@ import qualified Data.Text as T
 
 data CTerm = CTermVar String
            | CTermNum Number
+           | CTermString T.Text
            | CTermCompound (Tagged Atom SymbolId) [CTerm]
            | CTermHandle Handle
              deriving (Eq, Ord)
@@ -30,6 +31,7 @@ pattern CTermIsVar v <- (varNameC -> Just v)
 ctermToTerm :: CTerm -> Term
 ctermToTerm (CTermVar s) = TermVar s
 ctermToTerm (CTermNum n) = TermNum n
+ctermToTerm (CTermString t) = TermString t
 ctermToTerm (CTermCompound (Tagged (Atom h) _) ts) = TermCompound h $ fmap ctermToTerm ts
 ctermToTerm (CTermHandle h) = TermHandle h
 
@@ -45,6 +47,7 @@ instance Show CFact where
 compileTerm :: Member (SymbolTableState SymbolId) r => Term -> Sem r CTerm
 compileTerm (TermVar s) = pure (CTermVar s)
 compileTerm (TermNum n) = pure (CTermNum n)
+compileTerm (TermString t) = pure (CTermString t)
 compileTerm (TermCompound h ts) = CTermCompound <$> h' <*> ts'
     where h' = Tagged (Atom h) <$> intern (T.pack h)
           ts' = mapM compileTerm ts
@@ -58,6 +61,7 @@ compileFact (Fact h ts) = CFact <$> h' <*> ts'
 freeVarsC :: CTerm -> [String]
 freeVarsC (CTermVar s) = [s]
 freeVarsC (CTermNum {}) = []
+freeVarsC (CTermString {}) = []
 freeVarsC (CTermCompound _ ts) = concatMap freeVarsC ts
 freeVarsC (CTermHandle {}) = []
 
@@ -68,6 +72,7 @@ traverseVarsC :: Applicative f => (String -> f CTerm) -> CTerm -> f CTerm
 traverseVarsC f = go
     where go (CTermVar s) = f s
           go (CTermNum n) = pure (CTermNum n)
+          go (CTermString t) = pure (CTermString t)
           go (CTermCompound s args) = CTermCompound s <$> traverse go args
           go (CTermHandle h) = pure (CTermHandle h)
 

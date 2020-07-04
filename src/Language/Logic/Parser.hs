@@ -10,7 +10,7 @@ import qualified Language.Logic.Names as Names
 import Language.Logic.Number(Number(..))
 import Language.Logic.SymbolTable
 
-import Text.Parsec hiding (satisfy, runParser)
+import Text.Parsec hiding (satisfy, runParser, string)
 import Control.Monad
 import Control.Monad.Trans.RWS hiding (ask)
 import Control.Monad.Reader
@@ -62,6 +62,7 @@ term = (TermVar <$> var) <|>
        (TermNum . fromInteger) <$> integer <|>
        (TermNum . NumRat) <$> ratio <|>
        (TermNum . NumFloat) <$> float <|>
+       (TermString <$> string) <|>
        listTerm <|>
        (special OpenParen *> term' <* special CloseParen) <|>
        uncurry TermCompound <$> compoundTerm'

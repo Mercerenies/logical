@@ -2,10 +2,12 @@
 module Language.Logic.Parser.Token(TokenPos(..), Token(..), Spec(..), Keyword(..),
                                    oneToken, readTokens,
                                    satisfy, satisfyTok,
-                                   var, integer, ratio, float, atom, litAtom, operator, special, keyword) where
+                                   var, integer, ratio, float, atom, string,
+                                   litAtom, operator, special, keyword) where
 
-import Text.Parsec hiding (many, (<|>), satisfy, spaces)
+import Text.Parsec hiding (many, (<|>), satisfy, spaces, string)
 import qualified Text.Parsec as P
+import qualified Data.Text as T
 
 import Data.Char
 import Data.Ratio
@@ -25,6 +27,7 @@ data Token = TokenVar String
            | TokenInt Integer
            | TokenRat Rational
            | TokenFloat Double
+           | TokenString T.Text
            | TokenAtom String
            | TokenOperator String
            | TokenSpecial Spec
@@ -57,7 +60,7 @@ reservedOps :: [String]
 reservedOps = [":", "."]
 
 pkeyword :: Parser Keyword
-pkeyword = Operator <$ string "operator"
+pkeyword = Operator <$ P.string "operator"
 
 sign :: Num a => Parser (a -> a)
 sign = plus <|> minus <|> pure id
@@ -89,6 +92,30 @@ pfloat = try $ do
   case Read.readMaybe str of
     Nothing -> fail "not a floating-point literal"
     Just x -> pure x
+
+-- TODO Support backslash-newline sequences like Tcl
+pstring :: Parser T.Text
+pstring = T.pack <$> (char '"' *> many stringChar <* char '"')
+    where stringChar = backslashChar <|> stdChar
+          stdChar = noneOf "\"\\"
+          backslashChar = do
+            _ <- char '\\'
+            ch <- anyChar
+            processEscape ch
+
+processEscape :: MonadFail m => Char -> m Char
+processEscape x = case x of
+                    'a'  -> pure '\a'
+                    'b'  -> pure '\b'
+                    'f'  -> pure '\f'
+                    'n'  -> pure '\n'
+                    'r'  -> pure '\r'
+                    't'  -> pure '\t'
+                    'v'  -> pure '\v'
+                    '\\' -> pure '\\'
+                    '\'' -> pure '\''
+                    '"'  -> pure '"'
+                    _ -> fail $ "Invalid escape sequence \\" ++ show x
 
 identifier :: Parser String
 identifier = try $ do
@@ -162,6 +189,7 @@ oneToken = TokenPos <$> getPosition <*> getState <*> tok
                 TokenRat <$> pratio <|>
                 TokenFloat <$> pfloat <|>
                 TokenInt <$> pinteger <|>
+                TokenString <$> pstring <|>
                 TokenAtom <$> (patom <|> patomQuoted) <|>
                 TokenOperator <$> poper <|>
                 TokenSpecial <$> pspecial <|>
@@ -201,6 +229,11 @@ float :: Stream s m TokenPos => ParsecT s Int m Double
 float = satisfyTok $ \case
         TokenFloat d -> Just d
         _ -> Nothing
+
+string :: Stream s m TokenPos => ParsecT s Int m T.Text
+string = satisfyTok $ \case
+         TokenString s -> Just s
+         _ -> Nothing
 
 atom :: Stream s m TokenPos => ParsecT s Int m String
 atom = satisfyTok $ \case

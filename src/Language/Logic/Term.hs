@@ -9,10 +9,13 @@ import qualified Language.Logic.Names as Names
 import Language.Logic.Number(Number(..))
 import Language.Logic.Term.Handle
 
+import qualified Data.Text as T
+
 import Data.Char
 
 data Term = TermVar String
           | TermNum Number
+          | TermString T.Text
           | TermCompound String [Term]
           | TermHandle Handle
             deriving (Eq, Ord)
@@ -27,6 +30,7 @@ instance Show Term where
     showsPrec _ (TermVar v) = (v ++)
     showsPrec _ (TermNum n) = shows n
     showsPrec _ (xs@ TermCompound {}) | Just xs' <- toProperList xs = shows xs'
+    showsPrec _ (TermString t) = showTString t
     showsPrec _ (TermCompound s args) = showsAtomic s . ("(" ++) . args' . (")" ++)
         where args' = Util.sepBy ("," ++) $ fmap shows args
     showsPrec _ (TermHandle handle) = ("<handle " ++) . shows handle . (">" ++)
@@ -36,6 +40,9 @@ instance Show Fact where
 
 instance Show Atom where
     showsPrec _ (Atom s) = showsAtomic s
+
+showTString :: T.Text -> ShowS
+showTString = shows -- TODO This properly
 
 -- TODO If we end up supporting cyclic lists, we'll need to modify
 -- this to detect them.
@@ -61,6 +68,7 @@ showsAtomic s =
 freeVars :: Term -> [String]
 freeVars (TermVar s) = [s]
 freeVars (TermNum {}) = []
+freeVars (TermString {}) = []
 freeVars (TermCompound _ ts) = concatMap freeVars ts
 freeVars (TermHandle _) = []
 
@@ -75,6 +83,7 @@ renameVars :: [String] -> Term -> Term
 renameVars xs t = go t
     where go (TermVar s) = TermVar $ replaceVar s
           go (TermNum n) = TermNum n
+          go (TermString txt) = TermString txt
           go (TermCompound s args) = TermCompound s $ fmap go args
           go (TermHandle h) = TermHandle h
           xs' = xs ++ freeVars t
@@ -92,6 +101,7 @@ traverseVars :: Applicative f => (String -> f Term) -> Term -> f Term
 traverseVars f = go
     where go (TermVar s) = f s
           go (TermNum n) = pure (TermNum n)
+          go (TermString t) = pure (TermString t)
           go (TermCompound s args) = TermCompound s <$> traverse go args
           go (TermHandle h) = pure (TermHandle h)
 

@@ -1,0 +1,5 @@
+
+main: {
+  A = "ABC\nDEF";
+  write_term(A);
+}.
