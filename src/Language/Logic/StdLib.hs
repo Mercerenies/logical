@@ -187,6 +187,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("string_concat", [
             PrimClause "string_concat" (builtinToPrim Stdlib.String.stringConcat)
+           ]),
+          ("string_length", [
+            PrimClause "string_length" (builtinToPrim Stdlib.String.stringLength)
            ])
          ]
 

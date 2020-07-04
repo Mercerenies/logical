@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.Logic.StdLib.String(stringConcat) where
+module Language.Logic.StdLib.String(stringConcat, stringLength) where
 
 import Language.Logic.StdLib.Util
 import Language.Logic.Error
@@ -47,3 +47,7 @@ stringConcat = arg3 >=> \case
           invalid _ = True
           varOf (CTermIsVar v) = [v]
           varOf _ = []
+
+stringLength :: EvalCtx' r => CFact -> Sem r ()
+stringLength = arg2 >=> \(s, n) -> assertString s >>=
+               \s' -> unify (CTermNum $ fromIntegral (T.length s')) n

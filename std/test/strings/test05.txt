@@ -1,0 +1,12 @@
+
+main: {
+  string_length("ABCD", 4);
+  string_length("", 0);
+  string_length("ABCDEF", N);
+  N = 6;
+
+  # Unicode support! :D
+  string_length("αβγ·⌊⌋", 6);
+  string_length("⟨⟩¹²³₁₂₃½", 9);
+
+}.
