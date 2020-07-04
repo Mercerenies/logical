@@ -37,3 +37,5 @@ toState = reinterpret $ \case
             put $! table'
             return i
           Lookup i -> gets (SymbolTable.lookup i)
+
+-- ///// atom_string which uses intern and lookup internally
