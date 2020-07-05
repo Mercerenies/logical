@@ -1,0 +1,19 @@
+
+main: {
+  atom_string(abc, "abc");
+  atom_string(abc, S);
+  S = "abc";
+  atom_string(A, "abc");
+  A = abc;
+
+  X1 = "abc\ndef\\gHi3+:;";
+  atom_string(X2, X1);
+  atom_string(X2, X3);
+  X1 = X3;
+
+  Y1 = `abc+;;:(./~~`;
+  atom_string(Y1, Y2);
+  atom_string(Y3, Y2);
+  Y1 = Y3;
+
+}.

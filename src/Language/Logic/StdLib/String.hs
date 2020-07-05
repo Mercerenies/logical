@@ -1,15 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Language.Logic.StdLib.String(stringConcat, stringLength) where
+module Language.Logic.StdLib.String(stringConcat, stringLength, atomString) where
 
 import Language.Logic.StdLib.Util
 import Language.Logic.Term.Compiled
+import Language.Logic.Term(Atom(..))
+import Language.Logic.Tagged
+import Language.Logic.Error
+import Language.Logic.SymbolTable.Monad
 import qualified Language.Logic.Util as Util
 
 import qualified Data.Text as T
 import Polysemy
+import Polysemy.Error
 
 import Control.Monad
+import Prelude hiding (lookup)
 
 removePrefix :: T.Text -> T.Text -> Maybe T.Text
 removePrefix needle haystack
@@ -42,3 +48,16 @@ stringConcat = arg3 >=> \case
 stringLength :: EvalCtx' r => CFact -> Sem r ()
 stringLength = arg2 >=> \(s, n) -> assertString s >>=
                \s' -> unify (CTermNum $ fromIntegral (T.length s')) n
+
+atomString :: EvalCtx' r => CFact -> Sem r ()
+atomString = arg2 >=> \case
+             (a, CTermString b) ->
+                 intern b >>= \b' -> unify (CTermCompound (Tagged (Atom (T.unpack b)) b') []) a
+             (CTermCompound (Tagged _ a) [], b) ->
+                 lookup a >>= Util.hoistMaybe >>= \a' -> unify (CTermString a') b
+             (CTermVar a, CTermVar b) ->
+                 throw (VarsNotDone [a, b])
+             (CTermVar _, b) ->
+                 throw (TypeError "variable or string" $ ctermToTerm b)
+             (a, _) ->
+                 throw (TypeError "variable or atom" $ ctermToTerm a)

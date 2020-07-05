@@ -176,6 +176,9 @@ stdlib = CodeBody $ Map.fromList [
            ]),
           ("string_length", [
             PrimClause "string_length" (builtinToPrim Stdlib.String.stringLength)
+           ]),
+          ("atom_string", [
+            PrimClause "atom_string" (builtinToPrim Stdlib.String.atomString)
            ])
          ]
 
