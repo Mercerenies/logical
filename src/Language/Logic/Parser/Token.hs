@@ -2,8 +2,8 @@
 module Language.Logic.Parser.Token(TokenPos(..), Token(..), Spec(..), Keyword(..),
                                    oneToken, readTokens,
                                    satisfy, satisfyTok,
-                                   var, integer, ratio, float, atom, string,
-                                   litAtom, operator, special, keyword) where
+                                   var, integer, ratio, float, atom, qatom, string,
+                                   litAtom, operator, qoperator, special, keyword) where
 
 import Text.Parsec hiding (many, (<|>), satisfy, spaces, string)
 import qualified Text.Parsec as P
@@ -29,7 +29,9 @@ data Token = TokenVar String
            | TokenFloat Double
            | TokenString T.Text
            | TokenAtom String
+           | TokenQAtom String
            | TokenOperator String
+           | TokenQOperator String
            | TokenSpecial Spec
            | TokenKeyword Keyword
              deriving (Eq, Ord, Show)
@@ -140,6 +142,12 @@ patomQuoted = do
   _ <- char '`'
   return xs
 
+pqatom :: Parser String
+pqatom = try (char '\'' *> patom)
+
+pqatomQuoted :: Parser String
+pqatomQuoted = try (char '\'' *> patomQuoted)
+
 -- TODO I'm debating what to do with $. Haskell treats it as an
 -- operator, but many other languages (Scala, Java, Javascript, etc.)
 -- treat it as a standard identifier character.
@@ -157,6 +165,9 @@ poper = try $ do
   res <- many1 operChar
   guard $ not (res `elem` reservedOps)
   return res
+
+pqoper :: Parser String
+pqoper = try (char '\'' *> poper)
 
 pvar :: Parser String
 pvar = try $ do
@@ -191,7 +202,9 @@ oneToken = TokenPos <$> getPosition <*> getState <*> tok
                 TokenInt <$> pinteger <|>
                 TokenString <$> pstring <|>
                 TokenAtom <$> (patom <|> patomQuoted) <|>
+                TokenQAtom <$> (pqatom <|> pqatomQuoted) <|>
                 TokenOperator <$> poper <|>
+                TokenQOperator <$> pqoper <|>
                 TokenSpecial <$> pspecial <|>
                 TokenKeyword <$> pkeyword
 
@@ -240,12 +253,22 @@ atom = satisfyTok $ \case
        TokenAtom s -> Just s
        _ -> Nothing
 
+qatom :: Stream s m TokenPos => ParsecT s Int m String
+qatom = satisfyTok $ \case
+       TokenQAtom s -> Just s
+       _ -> Nothing
+
 litAtom :: Stream s m TokenPos => String -> ParsecT s Int m String
 litAtom s = try (atom >>= \s' -> guard (s == s') >> return s')
 
 operator :: Stream s m TokenPos => ParsecT s Int m String
 operator = satisfyTok $ \case
            TokenOperator s -> Just s
+           _ -> Nothing
+
+qoperator :: Stream s m TokenPos => ParsecT s Int m String
+qoperator = satisfyTok $ \case
+           TokenQOperator s -> Just s
            _ -> Nothing
 
 special :: Stream s m TokenPos => Spec -> ParsecT s Int m Spec
