@@ -1,0 +1,181 @@
+
+* THE PROPOSAL
+** SUMMARY
+  The point of the ~functional-syntax~ branch is this. Compare the
+  current ~samplefile10.txt~ with the proposed alternative.
+
+  Current: (Comments omitted)
+#+BEGIN_SRC
+factorial(0, 1).
+factorial(N, NF): {
+  N > 0;
+  M =: N - 1;
+  factorial(M, MF);
+  NF =: N * MF;
+}.
+
+print_facts(10).
+print_facts(N): {
+  N < 10;
+  factorial(N, NF);
+  write_term(NF);
+  N1 =: N + 1;
+  print_facts(N1);
+}.
+
+main:
+  once( print_facts(0) ).
+#+END_SRC
+
+  Proposed Alternative:
+#+BEGIN_SRC
+1 = factorial(0).
+NF = factorial(N): {
+  N > 0;
+  NF = N * factorial(N - 1);
+}.
+
+print_facts(10).
+print_facts(N): {
+  N < 10;
+  write_term(factorial(N));
+  print_facts(N + 1);
+}.
+
+main: once({ print_facts(0); }).
+#+END_SRC
+
+  The proposed alternative saves us a lot of pointless temporary
+  variables (~N1 =: N + 1~, etc.) and flows more naturally (it makes
+  sense to say "the factorial equals this").
+** NESTED TERMS
+   The basic idea is that nested terms are treated as "function"
+   calls. So the line ~A = foo(bar(B), C);~ would get desugared to
+
+#+BEGIN_SRC
+TMP = bar(B);
+A = foo(TMP, C);
+#+END_SRC
+
+   We use applicative order, so inner expressions are always evaluated
+   first and stored in a temporary variable. If multiple arguments
+   consist of subexpressions, they're evaluated left-to-right. If this
+   order is not desirable, you can always write the long form yourself
+   in whatever evaluation order you want.
+
+   If something nontrivial appears on the left-hand-side of equality,
+   it will get evaluated first. So ~foo(A) = bar(B);~ becomes
+
+#+BEGIN_SRC
+TMP = foo(A);
+TMP = bar(B);
+#+END_SRC
+
+   The fact that ~TMP~ might be ground after the first call is
+   inconsequential, as it's simply an extra argument to ~bar~.
+** LEFT-HAND ARGUMENT
+   In addition to the usual arguments to a predicate, each predicate
+   can optionally take a special left-hand argument. This is noted
+   differently in the definition. If you want a predicate that doesn't
+   expect a left-hand argument, simply write it like usual (~foo(A, B,
+   C)~). If you want one to take a left-hand argument, write ~A =
+   foo(B, C)~. The left-hand piece is simply another argument; you're
+   free to pattern match on it however you like. You can include some
+   clauses which use the argument and some which don't.
+
+   A term which includes the argument will never unify with a clause
+   which doesn't and vice versa. This is consistent with the current
+   semantics regarding arity, in which e.g. a term of three arguments
+   never matches a clause of two arguments. Essentially, the left-hand
+   argument is just an added piece of state to the existing notion of
+   "arity", so a function's arity will now not only be an integer but
+   will instead be ~(Int, Bool)~, where the integer is the number of
+   ordinary arguments and the Boolean is whether we have a left-hand
+   argument. Aside from the arity behavior and the desugaring behavior
+   above, the left-hand argument is just another argument.
+** PASSING COMPOUND TERMS
+   The next question, of course, becomes how to pass actual compound
+   terms. Since ~foo(bar(X))~ desugars to two lines, what if I
+   actually want to pass the term ~bar(X)~ to ~foo~? There are two
+   common use cases, and I handle them separately.
+*** CASE I: PASSING DATA
+    If we intend that ~bar(X)~ be treated as simple data, then we
+    simply precede it with a single quote, i.e. ~'bar(X)~. This tells
+    the system that ~bar~ is being used as a compound term
+    constructor, not a call. The arguments to ~bar~ still follow the
+    desugaring rules from above, but ~bar~ itself will not be called
+    (if it even exists).
+*** CASE II: PASSING CODE
+    If we intend that ~bar(X)~ be executed (such as by passing it to
+    ~call~ or ~if~), then we should wrap it in an explicit block, i.e.
+    ~{ bar(X) }~.
+** BLOCK SYNTAX
+   A minor modification to the block syntax is necessary to
+   accommodate the above changes. Currently, ~{ a(); b(): }~ desugars
+   to ~block(a(), b())~. Under the new system, I propose that it
+   desugar to a new data type which simply stores raw code. We could
+   try to continue desugaring to ~block(...)~ terms, but this
+   introduces complications when quoting infix operators, especially
+   when quoting ~=~, which is going to be deeply magic in the new
+   system.
+** LIST SYNTAX
+   A minor modification to the list syntax is necessary. Currently,
+   ~[a(), b()]~ desugars to ~a() :: b() :: `[]`~. Under the proposal,
+   it will desugar instead to ~a() ':: b() ':: '`[]`~. Note, in
+   particular, that unlike with block syntax, only the top-level forms
+   (~'::~ and ~'`[]`~) are quoted, /not/ the inner terms.
+** ATOMS
+   If we intend to pass an atom (i.e. a zero-argument compound term)
+   to a function, we must explicitly quote it. If we intend to call a
+   function with zero arguments, we require explicit parentheses. An
+   unquoted atom with no following parentheses shall be an error. I
+   reserve this syntax for future first-class function support. That
+   is, when we add the capability to have higher-order functions, it
+   is likely that ~foo~ on its own as an argument will be intended to
+   mean "pass the ~foo~ function, unevaluated, as an argument". For
+   now, it's a parse error. In summary,
+
+#+BEGIN_SRC
+bar(foo());  # (1) Calls foo(), then calls bar() with the result as argument
+bar('foo()); # (2) Calls bar(), with the term foo() as an argument
+bar('foo);   # (3) Equivalent to (2)
+bar(foo);    # (4) Parse error (reserved syntax for future use)
+#+END_SRC
+* THE PLAN
+  How we're going to implement the above proposal.
+** 1. QUOTING SYNTAX
+   Introduce the syntax for quoting terms. A term can be preceded by a
+   single quote, which protects it from the desugaring process.
+** 2. UNQUOTED TERMS
+   Disallow passing unquoted terms to functions. All arguments to
+   functions (and, transitively, arguments to those arguments) must
+   either be quoted or wrapped in a block. This ensures that, when we
+   make the change, there will be no accidental function calls.
+** 3. BLOCKS AND LISTS
+   Blocks should desugar to a new data type, which only unifies with
+   blocks identical to it and is only really useful when passed to
+   ~call~ or similar.
+
+   Lists require a minor modification, namely that they should desugar
+   to quoted calls to ~::~ and ~[]~.
+** 4. MAGIC EQUAL SIGN
+   The equal sign operator ~=~ should be treated as magic and parsed
+   specially by the parser. Specifically, it should move its
+   left-hand-side to be an extra "special" argument on the
+   right-hand-side compound term. Uses of ~=~ in which the
+   right-hand-side is not a compound term (or is a quoted compound
+   term) are treated as simple unification. The desugaring rules will
+   ensure that the operator remains fairly symmetric. For instance, ~A
+   = foo(B)~ desugars to a call to ~foo~, passing ~B~ and ~A~. ~foo(B)
+   = A~ desugars to two lines: the first calls ~foo~ with ~B~ and a
+   temporary variable ~TMP~, and the second is ordinary unification of
+   ~TMP~ and ~A~, which should produce the same result.
+
+   Likewise, we extend the syntax of declarations to allow declaration
+   of clauses with a left-hand argument.
+** 5. DESUGARING NESTED TERMS
+   The big step. When we encounter an unquoted nested term (which was
+   disallowed in (2) above), we desugar it to be multiple calls, where
+   the "result" argument is passed through a temporary variable
+   appropriately. This is a new step in compilation and takes place
+   after parsing and term compilation but before execution.
